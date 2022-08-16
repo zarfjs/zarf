@@ -15,7 +15,7 @@
     "http",
     "middleware"
   ],
-  "author": "Aftab Alam <hello@aalam.in>",
+  "author": "Aftab Alam <one.aalam@gmail.com>",
   "license": "MIT",
   "scripts": {
     "dev": "nodemon --config nodemon.json",

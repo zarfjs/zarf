@@ -1,0 +1,54 @@
+{
+  "name": "bun-tea",
+  "version": "0.0.1-alpha.0",
+  "description": "Fast, Bun-powered, and Bun-only(for now) Web API framework with full Typescript support.",
+  "homepage": "https://github.com/one-aalam/bun-tea",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/one-aalam/bun-tea.git"
+  },
+  "bugs": "https://github.com/one-aalam/bun-tea/issues",
+  "keywords": [
+    "bun",
+    "web",
+    "framework",
+    "http",
+    "middleware"
+  ],
+  "author": "Aftab Alam <hello@aalam.in>",
+  "license": "MIT",
+  "scripts": {
+    "dev": "nodemon --config nodemon.json",
+    "build": "bun run build:tsup --dts-resolve",
+    "build:tsup": "tsup src/index.ts --format cjs,esm",
+    "release": "bumpp --commit --push --tag && npm publish",
+    "prepublishOnly": "bun run build",
+    "test": "bun wiptest"
+  },
+  "dependencies": {
+    "es-mime-types": "^0.1.4"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.33.1",
+    "@typescript-eslint/parser": "^5.33.1",
+    "bumpp": "^8.2.1",
+    "bun-types": "^0.1.8",
+    "eslint": "^8.22.0",
+    "nodemon": "^2.0.19",
+    "tsup": "^6.2.2",
+    "typescript": "^4.7.4"
+  },
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ]
+}

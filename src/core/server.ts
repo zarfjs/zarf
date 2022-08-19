@@ -365,6 +365,27 @@ export class BunTea<S extends Record<string, any> = {}> {
 
     // ADVANCED: ROUTE ORCHESTRATION
     /**
+     * Mount a sub-app routes, on the parent app routes
+     *
+     * This method just copies over all the routes, from the mounted app to the root app, and re-registers all the handlers and
+     * middlewares on the newly formed path
+     * @param prefix
+     * @param app
+     */
+     mount<M>(prefix: string, app: BunTea<M>) {
+        for(const routeType in app.routes as RouteStack) {
+            for(const route of app.routes[routeType as RouteMethod] as Array<Route>) {
+                this.register(
+                    routeType as RouteMethod,
+                    getMountPath(prefix, route.id),
+                    route.middlewares, route.controller
+                )
+            }
+        }
+        this.appList[getMountPath(prefix, '')] = app
+    }
+
+    /**
      * Create and return Route groups
      * @param prefix
      * @param args

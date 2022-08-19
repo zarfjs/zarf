@@ -1,4 +1,4 @@
-import { MiddlewareFunction, MiddlewareFunctionInitializer } from "../core/middleware"
+import { MiddlewareFunction, MiddlewareFunctionInitializer } from '../../src/core/middleware'
 
 const MW_LOGGER_DEFAULTS = {
     logger: console.error

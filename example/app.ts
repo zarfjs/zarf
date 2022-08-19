@@ -1,5 +1,4 @@
 import { BunTea } from "../src"
-import { logger, loggerAfter } from '../src/middlewares/logger'
 
 interface AppLocals {
     user: string
@@ -7,27 +6,19 @@ interface AppLocals {
 
 const app = new BunTea<AppLocals>()
 
-app.get<{ name: string }>("/hello/:name", [ logger() ], (ctx, params) => {
-    console.log('before:', ctx.locals)
-    ctx.locals.user = "John"
-    console.log('after:', ctx.locals)
+app.get("/hello", (ctx) => {
     return ctx.json({
-      message: `Hello World! ${params.name}`,
-    });
+        hello: "hello"
+    })
 })
 
 app.post("/hello", async(ctx) => {
     const { request } = ctx
     const body = await request?.json() // await request.text()
     // do something with the body
-    return ctx.json({})
+    return ctx.json(body)
 })
 
-app.get("/hello", (ctx) => {
-    return ctx.json({
-        hello: "hello"
-    })
-})
 
 app.get("/text", (ctx) => {
     return ctx.text("lorem ipsum", {
@@ -36,18 +27,45 @@ app.get("/text", (ctx) => {
     })
 })
 
+app.get<{ name: string, title: string }>("/user/:name/books/:title", (ctx, params) => {
+    const { name, title } = params
+    return ctx.json({
+        name,
+        title
+    })
+})
+
+app.get<{ name: string }>("/user/:name?", (ctx, params) => {
+    const { name } = params
+    return ctx.json({
+        name
+    })
+})
+
+app.get<{ all : string }>("/admin/*all", (ctx, params) => {
+    return ctx.json({
+        name: params.all
+    })
+})
+
+app.get<{ brand: string, name: string }>("/v1/*brand/shop/*name", (ctx, params) => {
+    return ctx.json({
+        params
+    })
+})
+
 app.get("/send", async (ctx) => {
     return ctx.send(Bun.file("./README.md"))
 })
 
 app.get("/", (ctx) => {
-    return ctx.json({
+    return ctx.halt(200, {
       message: "Hello World!",
     });
 })
 
-app.use(logger()).use(loggerAfter, 'after')
-
 app.listen({
     port: 3000
+}, (server) => {
+    console.log(`Server started on ${server.port}`)
 })

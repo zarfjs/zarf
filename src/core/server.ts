@@ -363,6 +363,53 @@ export class BunTea<S extends Record<string, any> = {}> {
         return this
     }
 
+    // ADVANCED: ROUTE ORCHESTRATION
+    /**
+     * Create and return Route groups
+     * @param prefix
+     * @param args
+     * @returns
+     */
+    group(prefix: string = '/', ...args: Array<MiddlewareFunction<S>>) {
+        const pathPrefix = prefix === '' ? '/' : prefix
+        if(args.length) {
+            if(!this.pathMiddlewares[pathPrefix]) this.pathMiddlewares[pathPrefix] = { before: [], after: [], error: [] }
+            this.pathMiddlewares[pathPrefix].before.push(...args)
+            this.pathWithMiddlewares.push(pathPrefix)
+        }
+        return {
+            get: <T extends Record<string, string> = {}>(path: string, controller: Controller<T, S>) => {
+                this.register('get', getMountPath(prefix, path), controller);
+                return this
+            },
+            post: <T extends Record<string, string> = {}>(path: string, controller: Controller<T, S>) => {
+                this.register('post', getMountPath(prefix, path), controller);
+                return this
+            },
+            put: <T extends Record<string, string> = {}>(path: string, controller: Controller<T, S>) => {
+                this.register('put', getMountPath(prefix, path), controller);
+                return this
+            },
+            patch: <T extends Record<string, string> = {}>(path: string, controller: Controller<T, S>) => {
+                this.register('patch', getMountPath(prefix, path), controller);
+                return this
+            },
+            del: <T extends Record<string, string> = {}>(path: string, controller: Controller<T, S>) => {
+                this.register('delete', getMountPath(prefix, path), controller);
+                return this
+            },
+            all: <T extends Record<string, string> = {}>(path: string, controller: Controller<T, S>) => {
+                ['get', 'post', 'put', 'patch', 'delete'].forEach(verb => {
+                    this.register(verb as RouteMethod, getMountPath(prefix, path), controller);
+                })
+                return this
+            },
+            group: (path: string = '/', ...args: Array<MiddlewareFunction<S>>) => {
+                return this.group(getMountPath(prefix, path), ...args)
+            }
+        }
+    }
+
     /// MIDDLEWARES ///
 
     /**

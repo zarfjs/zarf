@@ -1,4 +1,4 @@
-import { RouteMethod } from './types'
+import type { BunTeaConfig, RouteMethod } from './types'
 import { json, text, head, send } from './response'
 
 /**
@@ -9,9 +9,13 @@ interface ContextMeta {
     startTime: number
 }
 
+/**
+ * Execution context for handlers and all the middlewares
+ */
 export class AppContext<S extends Record<string, any> = {}> {
     private readonly _request: Request | null
     private _response: Response | null
+    private _config: BunTeaConfig = {}
     private _error: any
     private _code: number | undefined;
     // private _body: ParsedFormBody | null
@@ -29,9 +33,9 @@ export class AppContext<S extends Record<string, any> = {}> {
     }
     private _isImmediate: boolean = false
 
-    constructor(req: Request) {
+    constructor(req: Request, config: BunTeaConfig) {
         this.meta.startTime = Date.now()
-
+        this._config = config
         this._request = req
         this._response = null
 
@@ -39,7 +43,11 @@ export class AppContext<S extends Record<string, any> = {}> {
 
         this.url = new URL(req.url)
         this.host = this.url.host
-        this.path = this.url.pathname
+        this.path = this._config.strictRouting || this.url.pathname === '/' ?
+            this.url.pathname :
+            this.url.pathname.endsWith('/') ?
+                this.url.pathname.substring(0, this.url.pathname.length -1) :
+                this.url.pathname
 
         this.query = new Proxy(new URLSearchParams(req.url), {
             get: (params, param) => params.get(param as string),
@@ -156,8 +164,12 @@ export class AppContext<S extends Record<string, any> = {}> {
         return head({...this.getResponseInit(), ...args})
     }
 
+
     /**
      * Halt flow, and return with currently provided status
+     *
+     * @param statusCode status code to use
+     * @param body the body to send in response. Could be `json`, `string`, etc.
      * @returns
      */
     async halt(statusCode: number, body: any): Promise<Response> {
@@ -166,7 +178,8 @@ export class AppContext<S extends Record<string, any> = {}> {
     }
 
     /**
-     * Redirected
+     * Redirect to the given URL
+     *
      * @param url
      * @param statusCode
      * @returns
@@ -186,12 +199,26 @@ export class AppContext<S extends Record<string, any> = {}> {
         if(this._response) {
             const { status, statusText, headers } = this._response
             return {
-                headers,
+                headers: {
+                    ...this.getAvailableCtxHeaders(),
+                    ...headers
+                },
                 status,
                 statusText
             }
         } else {
-            return {}
+
+            return {
+                headers: this.getAvailableCtxHeaders()
+            }
         }
+    }
+
+    private getAvailableCtxHeaders() {
+        const headers: Record<string, string> = {}
+        if(this._config.serverHeader) {
+            headers['Server'] = this._config.serverHeader
+        }
+        return headers
     }
 }

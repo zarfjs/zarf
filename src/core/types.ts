@@ -1,7 +1,20 @@
+import type { Errorlike } from "bun";
 import { AppContext } from './context'
 import { MiddlewareFunction } from './middleware';
 
-export const ROUTE_OPTION_DEFAULT = Symbol('default')
+export interface BunTeaConfig {
+    appName?: string
+    serverHeader?: string
+    strictRouting?: boolean
+    getOnly?: boolean
+    errorHandler?: (ctx: AppContext, error: Errorlike) => Response | Promise<Response> | Promise<undefined> | undefined
+}
+
+export interface BunTeaOptions {
+    port?: number,
+    development?: boolean,
+    hostname?: string
+}
 
 export interface Route {
     id: string
@@ -11,6 +24,9 @@ export interface Route {
     options: any,
     middlewares?: Array<MiddlewareFunction>
 }
+
+export type RouteStack = Record<RouteMethod, Array<Route>>
+
 
 export interface ResolvedRoute {
     controller: Controller

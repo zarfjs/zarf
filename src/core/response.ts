@@ -1,9 +1,13 @@
-import * as mime from 'es-mime-types'
-import { HTTP_STATUS_CODES } from './codes'
+import { getContentType } from './utils/mime'
+import { HTTP_STATUS_CODES } from './constants/codes'
 
-export const getMimeType = (type:string) =>  type.indexOf('/') === -1 ? mime.lookup(type) : type
-export const getContentType = (type:string) =>  type.indexOf('/') === -1 ? mime.contentType(type) : type
-
+/**
+ * Response helper: Sends the provided data as `json` to the client
+ *
+ * @param data `any` or provided type which could be JSON, string, etc.
+ * @param args
+ * @returns
+ */
 export function json<T = void>(data: T, args: ResponseInit = {}): Response {
     const headers = new Headers(args.headers || {})
     headers.set('Content-Type', getContentType('json'))
@@ -20,7 +24,12 @@ export function json<T = void>(data: T, args: ResponseInit = {}): Response {
     }
 }
 
-
+/**
+ * Response helper: Sends the provided data as `text` to the client
+ * @param text
+ * @param args
+ * @returns
+ */
 export function text(text: string, args: ResponseInit = {}): Response {
     const headers = new Headers(args.headers || {})
     const contentType = headers.get('Content-Type') || ''

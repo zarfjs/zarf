@@ -1,5 +1,5 @@
 import type { Errorlike, Server } from 'bun'
-import type { BunTeaConfig, BunTeaOptions, RouteStack, Controller, Route, RouteMethod  } from './types'
+import type { BunTeaConfig, BunTeaOptions, RouteStack, Controller, Route, RouteMethod, RouteParams  } from './types'
 
 import { AppContext } from './context'
 import { MiddlewareFunction, exec, MiddlewareType } from './middleware'
@@ -9,6 +9,8 @@ import { getMountPath } from './utils/app'
 
 import { ROUTE_OPTION_DEFAULT } from './constants'
 import { HTTP_STATUS_CODES } from './constants/codes'
+
+type BunTeaSubset<G> = Pick<BunTea<G>, 'get' | 'post' | 'put' | 'patch' | 'del' | 'group'>
 
 export class BunTea<S extends Record<string, any> = {}> {
     /**
@@ -308,9 +310,9 @@ export class BunTea<S extends Record<string, any> = {}> {
      * @param path
      * @param controller
      */
-    get<T extends Record<string, string> = {}>(path: string, controller: Controller<T, S>): void;
-    get<T extends Record<string, string> = {}>(path: string, middlewares: Array<MiddlewareFunction>, controller: Controller<T, S>): void;
-    get<T extends Record<string, string> = {}>(path: string, ...args: Array<Controller<T, S> | Array<MiddlewareFunction>>) {
+    get<T extends Record<string, string> = {}, Path extends string = string>(path: Path, controller: Controller<RouteParams<Path>, S>): void;
+    get<T extends Record<string, string> = {}, Path extends string = string>(path: Path, middlewares: Array<MiddlewareFunction>, controller: Controller<RouteParams<Path>, S>): void;
+    get<T extends Record<string, string> = {}, Path extends string = string>(path: Path, ...args: Array<Controller<RouteParams<Path>, S> | Array<MiddlewareFunction>>) {
         this.register('get', path, ...args);
         return this
     }
@@ -391,7 +393,8 @@ export class BunTea<S extends Record<string, any> = {}> {
      * @param args
      * @returns
      */
-    group(prefix: string = '/', ...args: Array<MiddlewareFunction<S>>) {
+    // @ts-ignore
+     group(prefix: string = '/', ...args: Array<MiddlewareFunction<S>>): BunTeaSubset<G> {
         const pathPrefix = prefix === '' ? '/' : prefix
         if(args.length) {
             if(!this.pathMiddlewares[pathPrefix]) this.pathMiddlewares[pathPrefix] = { before: [], after: [], error: [] }
@@ -399,33 +402,33 @@ export class BunTea<S extends Record<string, any> = {}> {
             this.pathWithMiddlewares.push(pathPrefix)
         }
         return {
-            get: <T extends Record<string, string> = {}>(path: string, controller: Controller<T, S>) => {
+            get<T extends Record<string, string> = {}, Path extends string = string>(this: BunTea<S>, path: Path, controller: Controller<RouteParams<Path>, S>) {
                 this.register('get', getMountPath(prefix, path), controller);
                 return this
             },
-            post: <T extends Record<string, string> = {}>(path: string, controller: Controller<T, S>) => {
+            post<T extends Record<string, string> = {}>(this: BunTea<S>, path: string, controller: Controller<T, S>) {
                 this.register('post', getMountPath(prefix, path), controller);
                 return this
             },
-            put: <T extends Record<string, string> = {}>(path: string, controller: Controller<T, S>) => {
+            put<T extends Record<string, string> = {}>(this: BunTea<S>, path: string, controller: Controller<T, S>) {
                 this.register('put', getMountPath(prefix, path), controller);
                 return this
             },
-            patch: <T extends Record<string, string> = {}>(path: string, controller: Controller<T, S>) => {
+            patch<T extends Record<string, string> = {}>(this: BunTea<S>, path: string, controller: Controller<T, S>){
                 this.register('patch', getMountPath(prefix, path), controller);
                 return this
             },
-            del: <T extends Record<string, string> = {}>(path: string, controller: Controller<T, S>) => {
+            del<T extends Record<string, string> = {}>(this: BunTea<S>, path: string, controller: Controller<T, S>) {
                 this.register('delete', getMountPath(prefix, path), controller);
                 return this
             },
-            all: <T extends Record<string, string> = {}>(path: string, controller: Controller<T, S>) => {
+            all<T extends Record<string, string> = {}>(this: BunTea<S>, path: string, controller: Controller<T, S>) {
                 ['get', 'post', 'put', 'patch', 'delete'].forEach(verb => {
                     this.register(verb as RouteMethod, getMountPath(prefix, path), controller);
                 })
                 return this
             },
-            group: (path: string = '/', ...args: Array<MiddlewareFunction<S>>) => {
+            group(this: BunTea<S>, path: string = '/', ...args: Array<MiddlewareFunction<S>>){
                 return this.group(getMountPath(prefix, path), ...args)
             }
         }
@@ -470,6 +473,7 @@ export class BunTea<S extends Record<string, any> = {}> {
             port,
             hostname,
             development: process.env.NODE_ENV !== "production" || development,
+            // @ts-ignore
             fetch: this.handle.bind(this),
             error(err: Errorlike) {
                 return self.serverErrorHandler(err)

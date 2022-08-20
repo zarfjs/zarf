@@ -1,6 +1,7 @@
 import type { Errorlike } from "bun";
 import { AppContext } from './context'
 import { MiddlewareFunction } from './middleware';
+import type { Replace } from './utils/types'
 
 export interface BunTeaConfig {
     appName?: string
@@ -37,6 +38,34 @@ export interface RouteProps {
     context: AppContext;
     request: Request;
     params: Record<string, string>;
+}
+
+type RouteParamNames<Route extends string> =
+    string extends Route
+        ? string
+        : Route extends `${string}:${infer Param}-:${infer Rest}`
+        ? (RouteParamNames<`/:${Param}/:${Rest}`>)
+        : Route extends `${string}:${infer Param}.:${infer Rest}`
+        ? (RouteParamNames<`/:${Param}/:${Rest}`>)
+        : Route extends `${string}:${infer Param}/${infer Rest}`
+        ? (Replace<Param, ':', ''> | RouteParamNames<Rest>)
+        : Route extends `${string}*${infer Param}/${infer Rest}`
+        ? (Replace<Param, '*', ''> | RouteParamNames<Rest>)
+        : (
+            Route extends `${string}:${infer LastParam}?` ?
+                Replace<Replace<LastParam, ':', ''>, '?', ''> :
+                    Route extends `${string}:${infer LastParam}` ?
+                        Replace<LastParam, ':', ''> :
+                            Route extends `${string}*${infer LastParam}` ?
+                                LastParam :
+                                    Route extends `${string}:${infer LastParam}?` ?
+                                        Replace<LastParam, '?', ''> :
+                                            never
+        );
+
+
+export type RouteParams<T extends string> = {
+    [key in RouteParamNames<T>]: string
 }
 
 export type RouteMethod = "get" | "post" | "put" | "patch" | "delete"

@@ -7,25 +7,25 @@ interface AppLocals {
 const app = new BunTea<AppLocals>()
 
 
-app.get<{ from: string, to: string }>("/flights/:from-:to", (ctx, params) => {
+app.get("/flights/:from-:to/", (ctx, params) => {
     return ctx.json({
         params
     })
 })
 
-app.get<{ from: string, to: string }>("/folder/:file.:ext", (ctx, params) => {
+app.get("/folder/:file.:ext", (ctx, params) => {
     return ctx.json({
         params
     })
 })
 
-app.get<{ from: string, to: string }>("/api/users.:ext", (ctx, params) => {
+app.get("/api/users.:ext", (ctx, params) => {
     return ctx.json({
         params
     })
 })
 
-app.get<{ color: string, size: string }>("/shop/product/color::color/size::size", (ctx, params) => {
+app.get("/shop/product/color::color/size::size/dep::dep", (ctx, params) => {
     return ctx.json({
         color: params.color,
         size: params.size

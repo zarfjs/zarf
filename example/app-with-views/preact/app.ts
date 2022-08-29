@@ -1,5 +1,4 @@
-import { BunTea } from "../src"
-import { Views } from './deps/mw-views'
+import { BunTea } from "../../../src"
 import { fileURLToPath } from 'url';
 import * as path from 'path'
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -11,8 +10,8 @@ interface AppLocals {
 }
 
 const app = new BunTea<AppLocals>({
-    engine: 'solid-ssr',
-    viewDir: path.resolve(__dirname, './deps/views/solidjs')
+    engine: 'preact-ssr',
+    viewDir: path.resolve(__dirname, './views')
 })
 
 

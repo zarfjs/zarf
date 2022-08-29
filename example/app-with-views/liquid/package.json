@@ -1,0 +1,11 @@
+{
+  "name": "bun-tea-liquid",
+  "module": "app.ts",
+  "type": "module",
+  "devDependencies": {
+    "bun-types": "^0.1.0"
+  },
+  "dependencies": {
+    "liquidjs": "^9.42.0"
+  }
+}

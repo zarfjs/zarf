@@ -1,0 +1,13 @@
+{
+  "name": "bun-tea-preact",
+  "module": "app.ts",
+  "type": "module",
+  "devDependencies": {
+    "bun-types": "^0.1.0"
+  },
+  "dependencies": {
+    "htm": "^3.1.1",
+    "preact": "^10.10.6",
+    "preact-render-to-string": "^5.2.2"
+  }
+}

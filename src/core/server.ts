@@ -46,14 +46,18 @@ export class BunTea<S extends Record<string, any> = {}> {
         serverHeader = `Bun-Tea`,
         strictRouting = false,
         getOnly = false,
-        errorHandler = defaultErrorHandler
+        errorHandler = defaultErrorHandler,
+        engine = false,
+        viewDir = './views'
     }: BunTeaConfig = {}){
         this.config = {
             appName,
             serverHeader,
             strictRouting,
             getOnly,
-            errorHandler
+            errorHandler,
+            engine,
+            viewDir
         }
     }
 
@@ -250,8 +254,8 @@ export class BunTea<S extends Record<string, any> = {}> {
          */
         if(this.middlewares.before && this.middlewares.before.length) {
             const resp = await exec(ctx, this.middlewares.before)
+            if(resp || ctx.isImmediate) return resp
         }
-
         /**
          * Group-level middlewars. Could halt execution, or respond
          */
@@ -392,6 +396,7 @@ export class BunTea<S extends Record<string, any> = {}> {
      * @returns
      */
     group(prefix: string = '/', ...args: Array<MiddlewareFunction<S>>) {
+        const self = this
         const pathPrefix = prefix === '' ? '/' : prefix
         if(args.length) {
             if(!this.pathMiddlewares[pathPrefix]) this.pathMiddlewares[pathPrefix] = { before: [], after: [], error: [] }
@@ -399,34 +404,34 @@ export class BunTea<S extends Record<string, any> = {}> {
             this.pathWithMiddlewares.push(pathPrefix)
         }
         return {
-            get: <T extends Record<string, string> = {}>(path: string, controller: Controller<T, S>) => {
-                this.register('get', getMountPath(prefix, path), controller);
-                return this
+            get<T extends Record<string, string> = {}>(path: string, controller: Controller<T, S>) {
+                self.register('get', getMountPath(prefix, path), controller);
+                return self
             },
-            post: <T extends Record<string, string> = {}>(path: string, controller: Controller<T, S>) => {
-                this.register('post', getMountPath(prefix, path), controller);
-                return this
+            post<T extends Record<string, string> = {}>(path: string, controller: Controller<T, S>) {
+                self.register('post', getMountPath(prefix, path), controller);
+                return self
             },
-            put: <T extends Record<string, string> = {}>(path: string, controller: Controller<T, S>) => {
-                this.register('put', getMountPath(prefix, path), controller);
-                return this
+            put<T extends Record<string, string> = {}>(path: string, controller: Controller<T, S>) {
+                self.register('put', getMountPath(prefix, path), controller);
+                return self
             },
-            patch: <T extends Record<string, string> = {}>(path: string, controller: Controller<T, S>) => {
-                this.register('patch', getMountPath(prefix, path), controller);
-                return this
+            patch<T extends Record<string, string> = {}>(path: string, controller: Controller<T, S>) {
+                self.register('patch', getMountPath(prefix, path), controller);
+                return self
             },
-            del: <T extends Record<string, string> = {}>(path: string, controller: Controller<T, S>) => {
-                this.register('delete', getMountPath(prefix, path), controller);
-                return this
+            del<T extends Record<string, string> = {}>(path: string, controller: Controller<T, S>) {
+                self.register('delete', getMountPath(prefix, path), controller);
+                return self
             },
-            all: <T extends Record<string, string> = {}>(path: string, controller: Controller<T, S>) => {
+            all <T extends Record<string, string> = {}>(path: string, controller: Controller<T, S>) {
                 ['get', 'post', 'put', 'patch', 'delete'].forEach(verb => {
-                    this.register(verb as RouteMethod, getMountPath(prefix, path), controller);
+                    self.register(verb as RouteMethod, getMountPath(prefix, path), controller);
                 })
-                return this
+                return self
             },
-            group: (path: string = '/', ...args: Array<MiddlewareFunction<S>>) => {
-                return this.group(getMountPath(prefix, path), ...args)
+            group(this: typeof self, path: string = '/', ...args: Array<MiddlewareFunction<S>>) {
+                return self.group(getMountPath(prefix, path), ...args)
             }
         }
     }
@@ -470,6 +475,7 @@ export class BunTea<S extends Record<string, any> = {}> {
             port,
             hostname,
             development: process.env.NODE_ENV !== "production" || development,
+            // @ts-ignore
             fetch: this.handle.bind(this),
             error(err: Errorlike) {
                 return self.serverErrorHandler(err)

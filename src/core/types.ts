@@ -1,13 +1,16 @@
 import type { Errorlike } from "bun";
 import { AppContext } from './context'
 import { MiddlewareFunction } from './middleware';
+import { SupportedTplEngine } from "./view";
 
 export interface BunTeaConfig {
     appName?: string
     serverHeader?: string
     strictRouting?: boolean
     getOnly?: boolean
-    errorHandler?: (ctx: AppContext, error: Errorlike) => Response | Promise<Response> | Promise<undefined> | undefined
+    errorHandler?: (ctx: AppContext, error: Errorlike) => Response | Promise<Response> | Promise<undefined> | undefined,
+    engine?: SupportedTplEngine | false
+    viewDir?: string
 }
 
 export interface BunTeaOptions {
@@ -39,7 +42,7 @@ export interface RouteProps {
     params: Record<string, string>;
 }
 
-export type RouteMethod = "get" | "post" | "put" | "patch" | "delete"
+export type RouteMethod = "get" | "post" | "put" | "patch" | "delete" | "head"
 
 type Path = string;
 export type RegisterRoute<T extends Record<string, string> = {}> = ( method: RouteMethod, path: Path, controller: Controller<T> ) => void;

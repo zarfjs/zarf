@@ -39,7 +39,7 @@ export interface RouteProps {
     params: Record<string, string>;
 }
 
-export type RouteMethod = "get" | "post" | "put" | "patch" | "delete"
+export type RouteMethod = "get" | "post" | "put" | "patch" | "delete" | "head"
 
 type Path = string;
 export type RegisterRoute<T extends Record<string, string> = {}> = ( method: RouteMethod, path: Path, controller: Controller<T> ) => void;

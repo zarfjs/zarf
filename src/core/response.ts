@@ -32,10 +32,15 @@ export function json<T = void>(data: T, args: ResponseInit = {}): Response {
  */
 export function text(text: string, args: ResponseInit = {}): Response {
     const headers = new Headers(args.headers || {})
-    const contentType = headers.get('Content-Type') || ''
-    if(contentType && typeof contentType === 'string') {
-        headers?.set('Content-Type', getContentType('text'))
-    }
+    headers?.set('Content-Type', getContentType('text'))
+    const status = args.status || 200
+    const statusText = args.statusText || HTTP_STATUS_CODES[status]
+    return new Response(text.toString(), { ...args, status, statusText, headers });
+}
+
+export function html(text: string, args: ResponseInit = {}): Response {
+    const headers = new Headers(args.headers || {})
+    headers?.set('Content-Type', getContentType('html'))
     const status = args.status || 200
     const statusText = args.statusText || HTTP_STATUS_CODES[status]
     return new Response(text.toString(), { ...args, status, statusText, headers });

@@ -10,13 +10,11 @@ import { getMountPath } from './utils/app'
 import { ROUTE_OPTION_DEFAULT } from './constants'
 import { HTTP_STATUS_CODES } from './constants/codes'
 
-type BunTeaSubset<G> = Pick<BunTea<G>, 'get' | 'post' | 'put' | 'patch' | 'del' | 'group'>
-
-export class BunTea<S extends Record<string, any> = {}> {
+export class BunTea<S extends Record<string, any> = {}, M extends Record<string, any> = {}> {
     /**
      * App Config
      */
-    private readonly config: BunTeaConfig
+    private readonly config: BunTeaConfig<S>
     private server?: Server
     /**
      * App stores
@@ -25,7 +23,7 @@ export class BunTea<S extends Record<string, any> = {}> {
     /**
      * Route stores
      */
-    private routes: Partial<Record<RouteMethod, Array<Route>>> = {}
+    private routes: Partial<Record<RouteMethod, Array<Route<S>>>> = {}
 
     /**
      * Middleware stores
@@ -49,7 +47,7 @@ export class BunTea<S extends Record<string, any> = {}> {
         strictRouting = false,
         getOnly = false,
         errorHandler = defaultErrorHandler
-    }: BunTeaConfig = {}){
+    }: BunTeaConfig<S> = {}){
         this.config = {
             appName,
             serverHeader,
@@ -91,7 +89,7 @@ export class BunTea<S extends Record<string, any> = {}> {
      * @param error
      * @returns
      */
-    errorHandler = (ctx: AppContext, error: Errorlike): Response | Promise<Response> | Promise<undefined> | undefined => {
+    errorHandler = (ctx: AppContext<S>, error: Errorlike): Response | Promise<Response> | Promise<undefined> | undefined => {
         const path = ctx.request?.url || ''
         const basePath = path.substring(0, path.lastIndexOf('/'))
         if(basePath && this.appList[basePath]) {
@@ -122,8 +120,8 @@ export class BunTea<S extends Record<string, any> = {}> {
         options[ROUTE_OPTION_DEFAULT] = options[ROUTE_OPTION_DEFAULT] || {}
 
         // Identify Handler and and/or middlewares
-        let controller: Controller;
-        let middlewares: Array<MiddlewareFunction> = []
+        let controller: Controller<{}, S>;
+        let middlewares: Array<MiddlewareFunction<S>> = []
         if(args.length === 1) {
             controller = args.pop()
         } else if(args.length === 2) {
@@ -274,7 +272,7 @@ export class BunTea<S extends Record<string, any> = {}> {
             // use middlewares
             if(route.middlewares && route.middlewares.length) {
                 try {
-                    const resp = await exec(ctx, route.middlewares)
+                    const resp = await exec<S>(ctx, route.middlewares)
                     if(resp || ctx.isImmediate) return resp as Response
                 } catch (error: unknown) {
                     if (error instanceof Error) {
@@ -290,7 +288,11 @@ export class BunTea<S extends Record<string, any> = {}> {
                         return response
                     } else if(this.middlewares.after.length) {
                         ctx.response = response
-                        const resp = await exec<{}, S>(ctx, this.middlewares.after)
+                        const resp = await exec(ctx, this.middlewares.after)
+                        if(resp) return resp
+                    }
+                    if(ctx.afterMiddlewares.length) {
+                        const resp = await exec(ctx, ctx.afterMiddlewares)
                         if(resp) return resp
                     }
                     return response;
@@ -311,8 +313,8 @@ export class BunTea<S extends Record<string, any> = {}> {
      * @param controller
      */
     get<Path extends string = string>(path: Path, controller: Controller<RouteParams<Path>, S>): void;
-    get<Path extends string = string>(path: Path, middlewares: Array<MiddlewareFunction>, controller: Controller<RouteParams<Path>, S>): void;
-    get<Path extends string = string>(path: Path, ...args: Array<Controller<RouteParams<Path>, S> | Array<MiddlewareFunction>>) {
+    get<Path extends string = string>(path: Path, middlewares: Array<MiddlewareFunction<M & Partial<S>>>, controller: Controller<RouteParams<Path>, S>): void;
+    get<Path extends string = string>(path: Path, ...args: Array<Controller<RouteParams<Path>, S> | Array<MiddlewareFunction<M & Partial<S>>>>) {
         this.register('get', path, ...args);
         return this
     }
@@ -323,8 +325,8 @@ export class BunTea<S extends Record<string, any> = {}> {
      * @param controller
      */
     post<Path extends string = string>(path: Path, controller: Controller<RouteParams<Path>, S>): void;
-    post<Path extends string = string>(path: Path, middlewares: Array<MiddlewareFunction>, controller: Controller<RouteParams<Path>, S>): void;
-    post<Path extends string = string>(path: Path, ...args: Array<Controller<RouteParams<Path>, S> | Array<MiddlewareFunction>>) {
+    post<Path extends string = string>(path: Path, middlewares: Array<MiddlewareFunction<M & Partial<S>>>, controller: Controller<RouteParams<Path>, S>): void;
+    post<Path extends string = string>(path: Path, ...args: Array<Controller<RouteParams<Path>, S> | Array<MiddlewareFunction<M & Partial<S>>>>) {
         this.register('post', path, ...args);
         return this
     }
@@ -335,8 +337,8 @@ export class BunTea<S extends Record<string, any> = {}> {
      * @param controller
      */
     put<Path extends string = string>(path: Path, controller: Controller<RouteParams<Path>, S>): void;
-    put<Path extends string = string>(path: Path, middlewares: Array<MiddlewareFunction>, controller: Controller<RouteParams<Path>, S>): void;
-    put<Path extends string = string>(path: Path, ...args: Array<Controller<RouteParams<Path>, S> | Array<MiddlewareFunction>>) {
+    put<Path extends string = string>(path: Path, middlewares: Array<MiddlewareFunction<M & Partial<S>>>, controller: Controller<RouteParams<Path>, S>): void;
+    put<Path extends string = string>(path: Path, ...args: Array<Controller<RouteParams<Path>, S> | Array<MiddlewareFunction<M & Partial<S>>>>) {
         this.register('put', path, ...args)
         return this
     }
@@ -347,8 +349,8 @@ export class BunTea<S extends Record<string, any> = {}> {
      * @param controller
      */
     patch<Path extends string = string>(path: Path, controller: Controller<RouteParams<Path>, S>): void;
-    patch<Path extends string = string>(path: Path, middlewares: Array<MiddlewareFunction>, controller: Controller<RouteParams<Path>, S>): void;
-    patch<Path extends string = string>(path: Path, ...args: Array<Controller<RouteParams<Path>, S> | Array<MiddlewareFunction>>) {
+    patch<Path extends string = string>(path: Path, middlewares: Array<MiddlewareFunction<M & Partial<S>>>, controller: Controller<RouteParams<Path>, S>): void;
+    patch<Path extends string = string>(path: Path, ...args: Array<Controller<RouteParams<Path>, S> | Array<MiddlewareFunction<M & Partial<S>>>>) {
         this.register('patch', path, ...args)
         return this
     }
@@ -359,8 +361,8 @@ export class BunTea<S extends Record<string, any> = {}> {
      * @param controller
      */
     del<Path extends string = string>(path: Path, controller: Controller<RouteParams<Path>, S>): void;
-    del<Path extends string = string>(path: Path, middlewares: Array<MiddlewareFunction>, controller: Controller<RouteParams<Path>, S>): void;
-    del<Path extends string = string>(path: Path, ...args: Array<Controller<RouteParams<Path>, S> | Array<MiddlewareFunction>>) {
+    del<Path extends string = string>(path: Path, middlewares: Array<MiddlewareFunction<M & Partial<S>>>, controller: Controller<RouteParams<Path>, S>): void;
+    del<Path extends string = string>(path: Path, ...args: Array<Controller<RouteParams<Path>, S> | Array<MiddlewareFunction<M & Partial<S>>>>) {
         this.register('delete', path, ...args)
         return this
     }
@@ -375,8 +377,8 @@ export class BunTea<S extends Record<string, any> = {}> {
      * @param app
      */
      mount<M>(prefix: string, app: BunTea<M>) {
-        for(const routeType in app.routes as RouteStack) {
-            for(const route of app.routes[routeType as RouteMethod] as Array<Route>) {
+        for(const routeType in app.routes as RouteStack<M>) {
+            for(const route of app.routes[routeType as RouteMethod] as Array<Route<M>>) {
                 this.register(
                     routeType as RouteMethod,
                     getMountPath(prefix, route.id),
@@ -405,8 +407,8 @@ export class BunTea<S extends Record<string, any> = {}> {
      * @param type
      * @returns
      */
-     use (middleware: MiddlewareFunction<S>, type: MiddlewareType = 'before') {
-        this.middlewares[type].push(middleware)
+    use (middleware: MiddlewareFunction<M>, type: MiddlewareType = 'before') {
+        this.middlewares[type].push(middleware as MiddlewareFunction<S>)
         return this
     }
 
@@ -457,7 +459,7 @@ export class BunTea<S extends Record<string, any> = {}> {
     }
 }
 
-function defaultErrorHandler(ctx: AppContext, err: Errorlike): Response {
+function defaultErrorHandler<S extends Record<string, string> = {}>(ctx: AppContext<S>, err: Errorlike): Response {
     const errorCode = parseInt(err.code as string || '') || 500
     return new Response(err.message || HTTP_STATUS_CODES[errorCode], { status: errorCode  });
 }

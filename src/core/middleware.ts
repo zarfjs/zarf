@@ -2,8 +2,8 @@ import type { AppContext } from "./context";
 
 export type MiddlewareFuncResp = void | Response;
 export type MiddlewareNextFunc = () => Promise<MiddlewareFuncResp>;
-export type MiddlewareFunction<S extends Record<string, any> = {}> = (
-	context: AppContext<S>,
+export type MiddlewareFunction<M extends Record<string, any> = {}> = (
+	context: AppContext<M>,
 	next: MiddlewareNextFunc
 ) => Promise<MiddlewareFuncResp>;
 export type MiddlewareFunctionInitializer<
@@ -13,7 +13,7 @@ export type MiddlewareFunctionInitializer<
 export type MiddlewareType = 'before' | 'after' | 'error'
 export const NoOpMiddleware: MiddlewareFunction = (_, next) => next();
 
-export async function exec<T extends Record<string, any> = {}, S extends Record<string, any> = {}>(context: AppContext<S>, middlewares: Array<MiddlewareFunction<S>>) {
+export async function exec<M extends Record<string, any> = {}>(context: AppContext<M>, middlewares: Array<MiddlewareFunction<M>>) {
     let prevIndexAt: number = -1;
 
     async function runner(indexAt: number): Promise<MiddlewareFuncResp> {

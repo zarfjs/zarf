@@ -1,6 +1,7 @@
 import type { BunTeaConfig, RouteMethod } from './types'
 import { json, text, head, send, html } from './response'
 import { getContentType } from './utils/mime'
+import { MiddlewareFunction } from './middleware'
 
 /**
  * Context-internal interfaces/types
@@ -18,9 +19,10 @@ type HeaderTypeContent = 'text' | 'json' | 'html'
  */
 export class AppContext<S extends Record<string, any> = {}> {
     private _response: Response | null
-    private _config: BunTeaConfig = {}
+    private _config: BunTeaConfig<S> = {}
     private _error: any
     private _code: number | undefined;
+    private _middlewares: Array<MiddlewareFunction<S>> = []
 
     private readonly _request: Request | null
     readonly url: URL;
@@ -36,7 +38,7 @@ export class AppContext<S extends Record<string, any> = {}> {
     }
     private _isImmediate: boolean = false
 
-    constructor(req: Request, config: BunTeaConfig) {
+    constructor(req: Request, config: BunTeaConfig<S>) {
         this.meta.startTime = Date.now()
         this._config = config
         this._request = req
@@ -255,4 +257,13 @@ export class AppContext<S extends Record<string, any> = {}> {
             return {}
         }
     }
+
+    after(func: MiddlewareFunction<S>) {
+        this._middlewares.push(func)
+    }
+
+    get afterMiddlewares() {
+        return this._middlewares
+    }
+
 }

@@ -1,5 +1,4 @@
 import { BunTea } from "../../src"
-import { logger, loggerAfter } from '../../src/middlewares/logger'
 
 interface AppLocals {
     user: string

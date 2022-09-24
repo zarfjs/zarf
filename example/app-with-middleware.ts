@@ -7,7 +7,7 @@ interface AppLocals {
 
 const app = new BunTea<AppLocals>()
 
-app.get<{ name: string }>("/hello/:name", [ logger() ], (ctx, params) => {
+app.get("/hello/:name", [ logger() ], (ctx, params) => {
     console.log('before:', ctx.locals)
     ctx.locals.user = "John"
     console.log('after:', ctx.locals)

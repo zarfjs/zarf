@@ -20,7 +20,7 @@ const apiV1 = api.group('/v1', (_, next) => {
     return next()
 })
 
-apiV1.get('/list', (ctx) => {
+apiV1.get('/list', (ctx, params) => {
     return ctx.json({
         list: 'list'
     })

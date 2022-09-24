@@ -27,7 +27,7 @@ interface SubAppLocals {
 
 const subApp = new BunTea<SubAppLocals>()
 
-subApp.get<{ name: string }>("/goodbye/:name", [ logger() ], (ctx, params) => {
+subApp.get("/goodbye/:name", [ logger() ], (ctx, params) => {
     return ctx.json({
       message: `Goodbye, ${params.name}`,
     });

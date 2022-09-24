@@ -68,7 +68,7 @@ export type RouteParams<T extends string> = {
     [key in RouteParamNames<T>]: string
 }
 
-export type RouteMethod = "get" | "post" | "put" | "patch" | "delete"
+export type RouteMethod = "get" | "post" | "put" | "patch" | "delete" | "head"
 
 type Path = string;
 export type RegisterRoute<T extends Record<string, string> = {}> = ( method: RouteMethod, path: Path, controller: Controller<T> ) => void;

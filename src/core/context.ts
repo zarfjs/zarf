@@ -1,5 +1,6 @@
 import type { BunTeaConfig, RouteMethod } from './types'
-import { json, text, head, send } from './response'
+import { json, text, head, send, html } from './response'
+import { getContentType } from './utils/mime'
 
 /**
  * Context-internal interfaces/types
@@ -9,17 +10,19 @@ interface ContextMeta {
     startTime: number
 }
 
+type HeaderVaryContent = 'Origin' | 'User-Agent' | 'Accept-Encoding' | 'Accept' | 'Accept-Language'
+type HeaderTypeContent = 'text' | 'json' | 'html'
+
 /**
  * Execution context for handlers and all the middlewares
  */
 export class AppContext<S extends Record<string, any> = {}> {
-    private readonly _request: Request | null
     private _response: Response | null
     private _config: BunTeaConfig = {}
     private _error: any
     private _code: number | undefined;
-    // private _body: ParsedFormBody | null
 
+    private readonly _request: Request | null
     readonly url: URL;
     readonly method: RouteMethod
     readonly host: string | undefined;
@@ -37,7 +40,7 @@ export class AppContext<S extends Record<string, any> = {}> {
         this.meta.startTime = Date.now()
         this._config = config
         this._request = req
-        this._response = null
+        this._response = new Response('')
 
         this.method = req.method.toLowerCase() as RouteMethod
 
@@ -55,6 +58,10 @@ export class AppContext<S extends Record<string, any> = {}> {
         this.headers = new Proxy(this._request.headers, {
             get: (headers, header) => headers.get(header as string),
         })
+
+        if(this._config.serverHeader) {
+            this._response.headers.set('Server', this._config.serverHeader)
+        }
 
         /**
          * Currently needed for reading request body using `json`, `text` or `arrayBuffer`
@@ -98,6 +105,31 @@ export class AppContext<S extends Record<string, any> = {}> {
 
     get isImmediate() {
         return this._isImmediate
+    }
+
+    /// HEADER HELPERS ///
+    setHeader(headerKey: string, headerVal: string) {
+        return this._response?.headers.set(headerKey, headerVal)
+    }
+
+    setType(headerVal: HeaderTypeContent) {
+        return this.setHeader('Content-Type', getContentType(headerVal))
+    }
+
+    isType(headerVal: HeaderTypeContent) {
+        return this._request?.headers.get('Content-Type') === getContentType(headerVal)
+    }
+
+    accepts(headerVal: HeaderTypeContent) {
+        return this._request?.headers.get('Accepts')?.includes(getContentType(headerVal))
+    }
+
+    // https://www.smashingmagazine.com/2017/11/understanding-vary-header/
+    setVary(...headerVals: Array<HeaderVaryContent>) {
+        if(headerVals.length) {
+            const varies = (this._response?.headers.get('Vary') || '').split(',')
+            this._response?.headers.set('Vary', [...new Set([...varies ,...headerVals])].join(','))
+        }
     }
 
     /**
@@ -157,6 +189,15 @@ export class AppContext<S extends Record<string, any> = {}> {
     }
 
     /**
+     * Send the provided value as `html`
+     * @param _text
+     * @returns
+     */
+     html(text: string, args: ResponseInit = {}): Response {
+        return html(text, {...this.getResponseInit(), ...args})
+    }
+
+    /**
      * Just return with `head` details
      * @returns
      */
@@ -198,27 +239,20 @@ export class AppContext<S extends Record<string, any> = {}> {
     private getResponseInit(): ResponseInit {
         if(this._response) {
             const { status, statusText, headers } = this._response
+
+            const _headers: Record<string, string> = {}
+            headers.forEach((val, key) => {
+                _headers[key] = val
+            })
+
             return {
-                headers: {
-                    ...this.getAvailableCtxHeaders(),
-                    ...headers
-                },
+                headers: _headers,
                 status,
                 statusText
             }
-        } else {
-
-            return {
-                headers: this.getAvailableCtxHeaders()
-            }
         }
-    }
-
-    private getAvailableCtxHeaders() {
-        const headers: Record<string, string> = {}
-        if(this._config.serverHeader) {
-            headers['Server'] = this._config.serverHeader
+        else {
+            return {}
         }
-        return headers
     }
 }

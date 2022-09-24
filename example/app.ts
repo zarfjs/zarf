@@ -59,9 +59,7 @@ app.get("/send", async (ctx) => {
 })
 
 app.get("/", (ctx) => {
-    return ctx.halt(200, {
-      message: "Hello World!",
-    });
+    return ctx.html(`Welcome to Bun-Tea App server`)
 })
 
 app.listen({

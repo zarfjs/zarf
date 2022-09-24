@@ -7,7 +7,7 @@ export type MiddlewareFunction<S extends Record<string, any> = {}> = (
 	next: MiddlewareNextFunc
 ) => Promise<MiddlewareFuncResp>;
 export type MiddlewareFunctionInitializer<
-    T extends Record<string, string|boolean|number|Function > = {},
+    T extends Record<string, string|boolean|number|Function| Object > = {},
     S extends Record<string, any> = {}> = (options?: T) => MiddlewareFunction<S>
 
 export type MiddlewareType = 'before' | 'after' | 'error'

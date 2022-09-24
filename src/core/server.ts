@@ -1,5 +1,5 @@
 import type { Errorlike, Server } from 'bun'
-import type { BunTeaConfig, BunTeaOptions, RouteStack, Controller, Route, RouteMethod  } from './types'
+import type { BunTeaConfig, BunTeaOptions, RouteStack, Controller, Route, RouteMethod, RouteParams  } from './types'
 
 import { AppContext } from './context'
 import { MiddlewareFunction, exec, MiddlewareType } from './middleware'
@@ -9,6 +9,8 @@ import { getMountPath } from './utils/app'
 
 import { ROUTE_OPTION_DEFAULT } from './constants'
 import { HTTP_STATUS_CODES } from './constants/codes'
+
+type BunTeaSubset<G> = Pick<BunTea<G>, 'get' | 'post' | 'put' | 'patch' | 'del' | 'group'>
 
 export class BunTea<S extends Record<string, any> = {}> {
     /**
@@ -308,9 +310,9 @@ export class BunTea<S extends Record<string, any> = {}> {
      * @param path
      * @param controller
      */
-    get<T extends Record<string, string> = {}>(path: string, controller: Controller<T, S>): void;
-    get<T extends Record<string, string> = {}>(path: string, middlewares: Array<MiddlewareFunction>, controller: Controller<T, S>): void;
-    get<T extends Record<string, string> = {}>(path: string, ...args: Array<Controller<T, S> | Array<MiddlewareFunction>>) {
+    get<Path extends string = string>(path: Path, controller: Controller<RouteParams<Path>, S>): void;
+    get<Path extends string = string>(path: Path, middlewares: Array<MiddlewareFunction>, controller: Controller<RouteParams<Path>, S>): void;
+    get<Path extends string = string>(path: Path, ...args: Array<Controller<RouteParams<Path>, S> | Array<MiddlewareFunction>>) {
         this.register('get', path, ...args);
         return this
     }
@@ -320,9 +322,9 @@ export class BunTea<S extends Record<string, any> = {}> {
      * @param path
      * @param controller
      */
-    post<T extends Record<string, string> = {}>(path: string, controller: Controller<T, S>): void;
-    post<T extends Record<string, string> = {}>(path: string, middlewares: Array<MiddlewareFunction>, controller: Controller<T, S>): void;
-    post<T extends Record<string, string> = {}>(path: string, ...args: Array<Controller<T, S> | Array<MiddlewareFunction>>) {
+    post<Path extends string = string>(path: Path, controller: Controller<RouteParams<Path>, S>): void;
+    post<Path extends string = string>(path: Path, middlewares: Array<MiddlewareFunction>, controller: Controller<RouteParams<Path>, S>): void;
+    post<Path extends string = string>(path: Path, ...args: Array<Controller<RouteParams<Path>, S> | Array<MiddlewareFunction>>) {
         this.register('post', path, ...args);
         return this
     }
@@ -332,9 +334,9 @@ export class BunTea<S extends Record<string, any> = {}> {
      * @param path
      * @param controller
      */
-    put<T extends Record<string, string> = {}>(path: string, controller: Controller<T, S>): void;
-    put<T extends Record<string, string> = {}>(path: string, middlewares: Array<MiddlewareFunction>, controller: Controller<T, S>): void;
-    put<T extends Record<string, string> = {}>(path: string, ...args: Array<Controller<T, S> | Array<MiddlewareFunction>>) {
+    put<Path extends string = string>(path: Path, controller: Controller<RouteParams<Path>, S>): void;
+    put<Path extends string = string>(path: Path, middlewares: Array<MiddlewareFunction>, controller: Controller<RouteParams<Path>, S>): void;
+    put<Path extends string = string>(path: Path, ...args: Array<Controller<RouteParams<Path>, S> | Array<MiddlewareFunction>>) {
         this.register('put', path, ...args)
         return this
     }
@@ -344,9 +346,9 @@ export class BunTea<S extends Record<string, any> = {}> {
      * @param path
      * @param controller
      */
-    patch<T extends Record<string, string> = {}>(path: string, controller: Controller<T, S>): void;
-    patch<T extends Record<string, string> = {}>(path: string, middlewares: Array<MiddlewareFunction>, controller: Controller<T, S>): void;
-    patch<T extends Record<string, string> = {}>(path: string, ...args: Array<Controller<T, S> | Array<MiddlewareFunction>>) {
+    patch<Path extends string = string>(path: Path, controller: Controller<RouteParams<Path>, S>): void;
+    patch<Path extends string = string>(path: Path, middlewares: Array<MiddlewareFunction>, controller: Controller<RouteParams<Path>, S>): void;
+    patch<Path extends string = string>(path: Path, ...args: Array<Controller<RouteParams<Path>, S> | Array<MiddlewareFunction>>) {
         this.register('patch', path, ...args)
         return this
     }
@@ -356,9 +358,9 @@ export class BunTea<S extends Record<string, any> = {}> {
      * @param path
      * @param controller
      */
-    del<T extends Record<string, string> = {}>(path: string, controller: Controller<T, S>): void;
-    del<T extends Record<string, string> = {}>(path: string, middlewares: Array<MiddlewareFunction>, controller: Controller<T, S>): void;
-    del<T extends Record<string, string> = {}>(path: string, ...args: Array<Controller<T, S> | Array<MiddlewareFunction>>) {
+    del<Path extends string = string>(path: Path, controller: Controller<RouteParams<Path>, S>): void;
+    del<Path extends string = string>(path: Path, middlewares: Array<MiddlewareFunction>, controller: Controller<RouteParams<Path>, S>): void;
+    del<Path extends string = string>(path: Path, ...args: Array<Controller<RouteParams<Path>, S> | Array<MiddlewareFunction>>) {
         this.register('delete', path, ...args)
         return this
     }
@@ -479,27 +481,27 @@ class BunTeaRouteGroup<S extends Record<string, string>> {
         if(args.length) registerMw(this.prefix, ...args)
     }
 
-    get<T extends Record<string, string> = {}>(path: string, controller: Controller<T, S>) {
+    get<Path extends string = string>(path: Path, controller: Controller<RouteParams<Path>, S>) {
         this.register('get', getMountPath(this.prefix, path), controller);
         return this as Omit<typeof this, 'group'>
     }
-    post<T extends Record<string, string> = {}>(path: string, controller: Controller<T, S>) {
+    post<Path extends string = string>(path: string, controller: Controller<RouteParams<Path>, S>) {
         this.register('post', getMountPath(this.prefix, path), controller);
         return this as Omit<typeof this, 'group'>
     }
-    put<T extends Record<string, string> = {}>(path: string, controller: Controller<T, S>) {
+    put<Path extends string = string>(path: string, controller: Controller<RouteParams<Path>, S>) {
         this.register('put', getMountPath(this.prefix, path), controller);
         return this as Omit<typeof this, 'group'>
     }
-    patch<T extends Record<string, string> = {}>(path: string, controller: Controller<T, S>) {
+    patch<Path extends string = string>(path: string, controller: Controller<RouteParams<Path>, S>) {
         this.register('patch', getMountPath(this.prefix, path), controller);
         return this as Omit<typeof this, 'group'>
     }
-    del<T extends Record<string, string> = {}>(path: string, controller: Controller<T, S>) {
+    del<Path extends string = string>(path: string, controller: Controller<RouteParams<Path>, S>) {
         this.register('delete', getMountPath(this.prefix, path), controller);
         return this as Omit<typeof this, 'group'>
     }
-    all <T extends Record<string, string> = {}>(path: string, controller: Controller<T, S>) {
+    all<Path extends string = string>(path: string, controller: Controller<RouteParams<Path>, S>) {
         ['get', 'post', 'put', 'patch', 'delete'].forEach(verb => {
             this.register(verb as RouteMethod, getMountPath(this.prefix, path), controller);
         })

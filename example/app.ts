@@ -27,7 +27,7 @@ app.get("/text", (ctx) => {
     })
 })
 
-app.get<{ name: string, title: string }>("/user/:name/books/:title", (ctx, params) => {
+app.get("/user/:name/books/:title", (ctx, params) => {
     const { name, title } = params
     return ctx.json({
         name,
@@ -35,20 +35,20 @@ app.get<{ name: string, title: string }>("/user/:name/books/:title", (ctx, param
     })
 })
 
-app.get<{ name: string }>("/user/:name?", (ctx, params) => {
-    const { name } = params
+app.get("/user/:name?", (ctx, params) => {
     return ctx.json({
-        name
+
     })
 })
 
-app.get<{ all : string }>("/admin/*all", (ctx, params) => {
+app.get("/admin/*all", (ctx, params) => {
+
     return ctx.json({
         name: params.all
     })
 })
 
-app.get<{ brand: string, name: string }>("/v1/*brand/shop/*name", (ctx, params) => {
+app.get("/v1/*brand/shop/*name", (ctx, params) => {
     return ctx.json({
         params
     })

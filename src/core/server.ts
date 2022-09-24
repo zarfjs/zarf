@@ -291,6 +291,10 @@ export class BunTea<S extends Record<string, any> = {}> {
                         const resp = await exec<{}, S>(ctx, this.middlewares.after)
                         if(resp) return resp
                     }
+                    if(ctx.postProcessors.length) {
+                        const resp = await exec<{}, S>(ctx, ctx.postProcessors)
+                        if(resp) return resp
+                    }
                     return response;
                 } catch (error: unknown) {
                     if (error instanceof Error) {

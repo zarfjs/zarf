@@ -1,6 +1,7 @@
 import type { BunTeaConfig, RouteMethod } from './types'
 import { json, text, head, send, html } from './response'
 import { getContentType } from './utils/mime'
+import { MiddlewareFunction, exec } from './middleware'
 
 /**
  * Context-internal interfaces/types
@@ -35,6 +36,7 @@ export class AppContext<S extends Record<string, any> = {}> {
         startTime: 0
     }
     private _isImmediate: boolean = false
+    private _after: Array<MiddlewareFunction<S>> = []
 
     constructor(req: Request, config: BunTeaConfig) {
         this.meta.startTime = Date.now()
@@ -255,4 +257,12 @@ export class AppContext<S extends Record<string, any> = {}> {
             return {}
         }
     }
+
+    after(mwFunc: MiddlewareFunction<S>) {
+        this._after.push(mwFunc)
+    }
+    get postProcessors() {
+        return this._after
+    }
+
 }

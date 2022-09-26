@@ -13,7 +13,8 @@ export default defineConfig({
       'parsers/body/index': 'src/core/utils/parsers/req-body.ts',
 
       'mw/request-id/index': 'src/middlewares/mw-request-id.ts',
-      'mw/cors/index': 'src/middlewares/mw-cors.ts'
+      'mw/cors/index': 'src/middlewares/mw-cors.ts',
+      'mw/body-parser/index': 'src/middlewares/mw-body-parser.ts'
     },
     format: ['cjs', 'esm'],
     dts: true,

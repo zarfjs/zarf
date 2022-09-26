@@ -1,4 +1,5 @@
 import type { BunTeaConfig, RouteMethod } from './types'
+import type { ParsedBody } from './utils/parsers/req-body'
 import { json, text, head, send, html } from './response'
 import { getContentType } from './utils/mime'
 import { MiddlewareFunction } from './middleware'
@@ -37,6 +38,8 @@ export class AppContext<S extends Record<string, any> = {}> {
         startTime: 0
     }
     private _isImmediate: boolean = false
+
+    public body: ParsedBody | null = null
 
     constructor(req: Request, config: BunTeaConfig<S>) {
         this.meta.startTime = Date.now()

@@ -1,6 +1,6 @@
 {
   "name": "bun-tea",
-  "version": "0.0.1-alpha.9",
+  "version": "0.0.1-alpha.10",
   "description": "Fast, Bun-powered, and Bun-only(for now) Web API framework with full Typescript support.",
   "homepage": "https://github.com/one-aalam/bun-tea",
   "repository": {

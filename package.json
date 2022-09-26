@@ -47,38 +47,21 @@
       "require": "./dist/index.js",
       "import": "./dist/index.mjs"
     },
-    "./utils/parsers/qs": {
-      "types": "./dist/utils/parsers/qs.d.ts",
-      "require": "./dist/utils/parsers/qs.js",
-      "import": "./dist/utils/parsers/qs.mjs"
+    "./utils/*": {
+      "types": "./dist/utils/**/index.d.ts",
+      "require": "./dist/utils/**/index.js",
+      "import": "./dist/utils/**/index.mjs"
     },
-    "./utils/parsers/json": {
-      "types": "./dist/utils/parsers/json.d.ts",
-      "require": "./dist/utils/parsers/json.js",
-      "import": "./dist/utils/parsers/json.mjs"
+    "./parsers/*": {
+        "types": "./dist/parsers/**/index.d.ts",
+        "require": "./dist/parsers/**/index.js",
+        "import": "./dist/parsers/**/index.mjs"
     },
-    "./utils/parsers/body": {
-      "types": "./dist/utils/parsers/body.d.ts",
-      "require": "./dist/utils/parsers/body.js",
-      "import": "./dist/utils/parsers/body.mjs"
-    },
-    "./utils/is": {
-      "types": "./dist/utils/is.d.ts",
-      "require": "./dist/utils/is.js",
-      "import": "./dist/utils/is.mjs"
-    },
-    "./utils/mime": {
-      "types": "./dist/utils/mime.d.ts",
-      "require": "./dist/utils/mime.js",
-      "import": "./dist/utils/mime.mjs"
-    },
-    "./utils/sanitize": {
-      "types": "./dist/utils/sanitize.d.ts",
-      "require": "./dist/utils/sanitize.js",
-      "import": "./dist/utils/sanitize.mjs"
-    }
+    "./package.json": "./package.json"
   },
   "files": [
-    "dist"
+    "dist",
+    "utils",
+    "parsers"
   ]
 }

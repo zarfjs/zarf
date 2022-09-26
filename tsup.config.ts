@@ -12,7 +12,8 @@ export default defineConfig({
       'parsers/qs/index': 'src/core/utils/parsers/query-string.ts',
       'parsers/body/index': 'src/core/utils/parsers/req-body.ts',
 
-      'mw/request-id/index': 'src/middlewares/mw-request-id.ts'
+      'mw/request-id/index': 'src/middlewares/mw-request-id.ts',
+      'mw/cors/index': 'src/middlewares/mw-cors.ts'
     },
     format: ['cjs', 'esm'],
     dts: true,

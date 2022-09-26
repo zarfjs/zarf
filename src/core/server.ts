@@ -200,7 +200,6 @@ export class BunTea<S extends Record<string, any> = {}, M extends Record<string,
      * @returns
      */
     private resolve(method: RouteMethod, path: string) {
-
         const route = this.routes[method]!.find(route => route.matcher.test(path))
         if(!route) return undefined
 
@@ -264,6 +263,7 @@ export class BunTea<S extends Record<string, any> = {}, M extends Record<string,
             await exec(ctx, this.pathMiddlewares[basePath].before)
         }
 
+        if(!this.routes[method]) return defaultErrorHandler(ctx, new Error(`No routes provided for the incoming VERB`))
         /**
          * Identify if there's a handler
          */
@@ -366,6 +366,18 @@ export class BunTea<S extends Record<string, any> = {}, M extends Record<string,
         this.register('delete', path, ...args)
         return this
     }
+
+    /**
+     *
+     * @param path
+     * @param controller
+     */
+     opt<Path extends string = string>(path: Path, controller: Controller<RouteParams<Path>, S>): void;
+     opt<Path extends string = string>(path: Path, middlewares: Array<MiddlewareFunction<M & Partial<S>>>, controller: Controller<RouteParams<Path>, S>): void;
+     opt<Path extends string = string>(path: Path, ...args: Array<Controller<RouteParams<Path>, S> | Array<MiddlewareFunction<M & Partial<S>>>>) {
+         this.register('options', path, ...args)
+         return this
+     }
 
     // ADVANCED: ROUTE ORCHESTRATION
     /**

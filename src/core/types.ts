@@ -3,7 +3,6 @@ import { AppContext as PrivateAppContext } from './context'
 import { MiddlewareFunction } from './middleware';
 import type { Replace } from './utils/types'
 
-
 export interface BunTeaConfig<S extends Record<string, any> = {}> {
     appName?: string
     serverHeader?: string
@@ -69,7 +68,7 @@ export type RouteParams<T extends string> = {
     [key in RouteParamNames<T>]: string
 }
 
-export type RouteMethod = "get" | "post" | "put" | "patch" | "delete" | "head"
+export type RouteMethod = "get" | "post" | "put" | "patch" | "delete" | "head" | "options"
 
 type Path = string;
 export type AppContext<S extends Record<string, string> = {}> = Omit<PrivateAppContext<S>, 'after' | 'afterMiddlewares'>

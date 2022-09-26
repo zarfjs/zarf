@@ -1,10 +1,9 @@
 import { bufferToString } from './buffer'
 
 export async function getFormDataFromRequest(request: Request) {
-    const arrayBuffer = await request?.arrayBuffer()
     const boundary = getBoundary(request?.headers.get('Content-Type') || '')
     if (boundary) {
-        return getParsedFormData(Buffer.from(arrayBuffer), boundary)
+        return await getParsedFormData(request, boundary)
     } else {
         return {}
     }
@@ -24,6 +23,13 @@ function getBoundary(header: string) {
     return '';
 }
 
+const normalizeLf = (str: string) => str.replace(/\r?\n|\r/g, '\r\n')
+const escape = (str: string) => normalizeLf(str).replace(/\n/g, '%0A').replace(/\r/g, '%0D').replace(/"/g, '%22')
+const replaceTrailingBoundary = (value: string, boundary: string) => {
+    const boundaryStr = `--${boundary.trim()}--`
+    return value.replace(boundaryStr, '')
+}
+
 export interface ParsedFileField {
     filename: string
     type: string,
@@ -39,30 +45,36 @@ export type ParsedFormData = Record<string, string | ParsedFileField>
  * @param spotText
  * @returns
  */
-function getParsedFormData(buffer: Buffer, boundary: string, spotText?: string): ParsedFormData {
+
+async function getParsedFormData(request: Request, boundary: string, spotText?: string): Promise<ParsedFormData> {
+    const _boundary = ' ' + `${boundary}`
     const result: Record<string, any> = {};
-    const data = bufferToString(buffer)
-    data.split(boundary)
-        .forEach(item => {
-            const nameMatch = item.match(/name=".+"/g)
-            if(nameMatch) {
-                if (/filename=".+"/g.test(item)) {
-                    const fileNameMatch = item.match(/filename=".+"/g)
-                    const contentTypeMatch = item.match(/Content-Type:\s.+/g)
-                    if(contentTypeMatch && fileNameMatch) {
-                        const fieldName = nameMatch[0].replace(fileNameMatch[0], '').slice(6, -3)
-                        result[fieldName] = {
-                            filename: fileNameMatch?.[0].slice(10, -1),
-                            type: contentTypeMatch[0].slice(14),
-                            data: spotText? Buffer.from(item.slice(item.search(/Content-Type:\s.+/g) + contentTypeMatch[0].length + 4, -4), 'binary'):
-                                item.slice(item.search(/Content-Type:\s.+/g) + contentTypeMatch[0].length + 4, -4),
-                        };
-                        result[fieldName]['size'] = Buffer.byteLength(result[fieldName].data)
-                    }
-                } else if (/name=".+"/g.test(item)){
-                    result[nameMatch[0].slice(6, -1)] = item.slice(item.search(/name=".+"/g) + nameMatch[0].length + 4, -4);
+    const prefix = `--${_boundary.trim()}\r\nContent-Disposition: form-data; name="`
+    const data = bufferToString(Buffer.from(await request?.arrayBuffer()))
+    const multiParts = data.split(prefix).filter(
+        part => part.includes('"')
+    ).map(
+        part => [
+            part.substring(0, part.indexOf('"')),
+            part.slice(part.indexOf('"') + 1, -1)
+        ]
+    )
+    multiParts.forEach(item => {
+            if (/filename=".+"/g.test(item[1])) {
+                const fileNameMatch = item[1].match(/filename=".+"/g)
+                const contentTypeMatch = item[1].match(/Content-Type:\s.+/g)
+                if(contentTypeMatch && fileNameMatch) {
+                    result[item[0]] = {
+                        filename: fileNameMatch?.[0].slice(10, -1),
+                        type: contentTypeMatch[0].slice(14),
+                        data: spotText? Buffer.from(item[1].slice(item[1].search(/Content-Type:\s.+/g) + contentTypeMatch[0].length + 4, -4), 'binary'):
+                            item[1].slice(item[1].search(/Content-Type:\s.+/g) + contentTypeMatch[0].length + 4, -4),
+                    };
+                    result[item[0]]['size'] = Buffer.byteLength(result[item[0]].data)
                 }
+            } else {
+                result[item[0]] = normalizeLf(replaceTrailingBoundary(item[1], _boundary)).trim()
             }
-        });
+    });
     return result
 }

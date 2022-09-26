@@ -20,7 +20,7 @@
   "scripts": {
     "dev": "nodemon --config nodemon.json",
     "build": "bun run build:tsup --dts-resolve",
-    "build:tsup": "tsup src/index.ts --format cjs,esm",
+    "build:tsup": "tsup",
     "release": "bumpp --commit --push --tag && npm publish",
     "prepublishOnly": "bun run build",
     "test": "bun wiptest"
@@ -43,9 +43,19 @@
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "require": "./dist/index.js",
-      "import": "./dist/index.mjs",
-      "types": "./dist/index.d.ts"
+      "import": "./dist/index.mjs"
+    },
+    "./utils/parsers/*": {
+        "types": "./dist/utils/parsers/*.d.ts",
+        "require": "./dist/utils/parsers/*.js",
+        "import": "./dist/utils/parsers/*.mjs"
+    },
+    "./utils/*": {
+      "types": "./dist/utils/*.d.ts",
+      "require": "./dist/utils/*.js",
+      "import": "./dist/utils/*.mjs"
     }
   },
   "files": [

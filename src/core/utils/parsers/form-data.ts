@@ -34,10 +34,13 @@ export interface ParsedFileField {
     filename: string
     type: string,
     data: Buffer,
-    size: number
+    size: number,
 }
 export type ParsedFormData = Record<string, string | ParsedFileField>
 
+export function isFileField(fieldTuple: [string, string | ParsedFileField ]): fieldTuple is [string, ParsedFileField] {
+    return typeof fieldTuple[1] !== 'string';
+}
 /**
  * Get parsed form data
  * @param data
@@ -68,7 +71,7 @@ async function getParsedFormData(request: Request, boundary: string, spotText?: 
                         filename: fileNameMatch?.[0].slice(10, -1),
                         type: contentTypeMatch[0].slice(14),
                         data: spotText? Buffer.from(item[1].slice(item[1].search(/Content-Type:\s.+/g) + contentTypeMatch[0].length + 4, -4), 'binary'):
-                            item[1].slice(item[1].search(/Content-Type:\s.+/g) + contentTypeMatch[0].length + 4, -4),
+                        Buffer.from(item[1].slice(item[1].search(/Content-Type:\s.+/g) + contentTypeMatch[0].length + 4, -4), 'binary'),
                     };
                     result[item[0]]['size'] = Buffer.byteLength(result[item[0]].data)
                 }

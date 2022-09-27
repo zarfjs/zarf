@@ -18,5 +18,6 @@ export default defineConfig({
     },
     format: ['cjs', 'esm'],
     dts: true,
-    clean: true
+    clean: true,
+    treeshake: true
 })

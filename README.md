@@ -121,9 +121,14 @@ app.get("/v1/*brand/shop/*name", (ctx, params) => {
 })
 ```
 
-# Developed on MacOS Catalina with Bun v0.1.11
-Issue: https://github.com/oven-sh/bun/issues/1266
-Solution: Upgrade your Mac or Go on old version of Bun - `curl https://bun.sh/install | bash -s -- bun-v0.1.11`
+## RoadMap
+A lot of great stuff is actually planned for the project. The Alpha version is majorly focussing on making the core stable and provide all the essential features. Here's snapshot of the [roadmap](https://github.com/users/one-aalam/projects/3/views/1).(private)
 
-# RoadMap
-A lot of great stuff is actually planned for the project. The Alpha version is majorly focussing on making the core stable and provide all the essential features. For an exhaustive list of what's coming to `Bun-Tea` refer the [project roadmap](https://github.com/users/one-aalam/projects/3/views/1).
+<img src="./assets/code/roadmap.png" alt="Bun-Tea Roadmap" />
+
+
+
+## Meta
+The project is developed on
+- OS - MacOS Monterey
+- Bun - v0.1.13

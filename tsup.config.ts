@@ -14,7 +14,10 @@ export default defineConfig({
 
       'mw/request-id/index': 'src/middlewares/mw-request-id.ts',
       'mw/cors/index': 'src/middlewares/mw-cors.ts',
-      'mw/body-parser/index': 'src/middlewares/mw-body-parser.ts'
+      'mw/body-parser/index': 'src/middlewares/mw-body-parser.ts',
+
+      'engines/storage/index': 'src/engines/storage/index.ts',
+      'engines/storage/impl/memory-session/index': 'src/engines/storage/impl/session-memory.storage.ts',
     },
     format: ['cjs', 'esm'],
     dts: true,

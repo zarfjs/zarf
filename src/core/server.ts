@@ -247,7 +247,7 @@ export class BunTea<S extends Record<string, any> = {}, M extends Record<string,
         /**
          * Global "App-level" middlewares
          */
-        if(this.middlewares.before && this.middlewares.before.length) {
+        if(this.middlewares?.before && this.middlewares?.before.length) {
             const resp = await exec(ctx, this.middlewares.before)
             if(resp || ctx.isImmediate) return resp
         }

@@ -1,6 +1,6 @@
 {
   "name": "bun-tea",
-  "version": "0.0.1-alpha.13",
+  "version": "0.0.1-alpha.14",
   "author": "Aftab Alam <one.aalam@gmail.com>",
   "repository": {
     "type": "git",
@@ -99,9 +99,11 @@
     "dev": "nodemon --config nodemon.json",
     "build": "bun run build:tsup --dts-resolve",
     "build:tsup": "tsup",
+    "denoify": "rimraf deno_dist && denoify",
     "release": "bumpp --commit --push --tag && npm publish",
     "prepublishOnly": "bun run build",
-    "test": "bun wiptest"
+    "test": "bun wiptest",
+    "deno": "deno run --unstable --reload --allow-read --allow-env --allow-net example/deno-app.ts"
   },
   "types": "dist/index.d.ts",
   "typesVersions": {

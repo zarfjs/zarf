@@ -241,7 +241,7 @@ export class BunTea<S extends Record<string, any> = {}, M extends Record<string,
      * @param req
      * @returns
      */
-    private async handle(req: Request) {
+    public async handle(req: Request) {
         const ctx = new AppContext<S>(req, this.config)
         const { path , method } = ctx
         /**

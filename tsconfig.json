@@ -8,6 +8,14 @@
       "paths": {
         "~/*": ["./src/*"]
       },
-      "types": ["bun-types"]
-    }
+      "types": ["bun-types"],
+       "outDir": "dist/",
+    },
+    "exclude": [
+        "node_modules",
+        "dist/",
+        "deno_dist/",
+        "src/**/*.deno.ts",
+        "src/**/*.deno.tsx",
+   ]
 }

@@ -78,7 +78,9 @@
   "bugs": "https://github.com/one-aalam/bun-tea/issues",
   "denoify": {
     "index": "src/index.ts",
-    "includes": []
+    "includes": [
+        "!src/core/utils/mime.test.ts"
+    ]
   },
   "description": "Fast, Bun-powered, and Bun-only(for now) Web API framework with full Typescript support.",
   "files": [
@@ -99,11 +101,11 @@
     "dev": "nodemon --config nodemon.json",
     "build": "bun run build:tsup --dts-resolve",
     "build:tsup": "tsup",
-    "denoify": "rimraf deno_dist && denoify",
+    "build:deno": "rimraf deno_dist && denoify",
     "release": "bumpp --commit --push --tag && npm publish",
     "prepublishOnly": "bun run build",
     "test": "bun wiptest",
-    "deno": "deno run --unstable --reload --allow-read --allow-env --allow-net example/deno-app.ts"
+    "dev:deno": "deno run --unstable --reload --allow-read --allow-env --allow-net example/deno/app.ts"
   },
   "types": "dist/index.d.ts",
   "typesVersions": {

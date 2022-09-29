@@ -55,6 +55,7 @@ export class BunTea<S extends Record<string, any> = {}, M extends Record<string,
             getOnly,
             errorHandler
         }
+        this.handle = this.handle.bind(this)
     }
 
     /// SERVER ERROR HANDLERS ///

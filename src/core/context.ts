@@ -118,7 +118,11 @@ export class AppContext<S extends Record<string, any> = {}> {
     }
 
     setType(headerVal: HeaderTypeContent) {
-        return this.setHeader('Content-Type', getContentType(headerVal))
+        const contentType = getContentType(headerVal)
+        if(contentType) {
+            this.setHeader('Content-Type', getContentType(headerVal) as string)
+        }
+        return
     }
 
     isType(headerVal: HeaderTypeContent) {
@@ -126,7 +130,7 @@ export class AppContext<S extends Record<string, any> = {}> {
     }
 
     accepts(headerVal: HeaderTypeContent) {
-        return this._request?.headers.get('Accepts')?.includes(getContentType(headerVal))
+        return this._request?.headers.get('Accepts')?.includes(getContentType(headerVal) || '')
     }
 
     // https://www.smashingmagazine.com/2017/11/understanding-vary-header/

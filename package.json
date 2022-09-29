@@ -1,141 +1,144 @@
 {
-    "name": "bun-tea",
-    "version": "0.0.1-alpha.13",
-    "description": "Fast, Bun-powered, and Bun-only(for now) Web API framework with full Typescript support.",
-    "homepage": "https://github.com/one-aalam/bun-tea",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/one-aalam/bun-tea.git"
+  "name": "bun-tea",
+  "version": "0.0.1-alpha.13",
+  "author": "Aftab Alam <one.aalam@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/one-aalam/bun-tea.git"
+  },
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.33.1",
+    "@typescript-eslint/parser": "^5.33.1",
+    "bumpp": "^8.2.1",
+    "bun-types": "^0.1.8",
+    "denoify": "^1.1.4",
+    "eslint": "^8.22.0",
+    "nodemon": "^2.0.19",
+    "rimraf": "^3.0.2",
+    "tsup": "^6.2.2",
+    "typescript": "^4.7.4"
+  },
+  "exports": {
+    ".": {
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs"
     },
-    "bugs": "https://github.com/one-aalam/bun-tea/issues",
-    "keywords": [
-        "bun",
-        "web",
-        "framework",
-        "http",
-        "middleware"
-    ],
-    "author": "Aftab Alam <one.aalam@gmail.com>",
-    "license": "MIT",
-    "scripts": {
-        "dev": "nodemon --config nodemon.json",
-        "build": "bun run build:tsup --dts-resolve",
-        "build:tsup": "tsup",
-        "release": "bumpp --commit --push --tag && npm publish",
-        "prepublishOnly": "bun run build",
-        "test": "bun wiptest"
+    "./utils/is": {
+      "require": "./dist/utils/is/index.js",
+      "import": "./dist/utils/is/index.mjs"
     },
-    "dependencies": {
-        "es-mime-types": "^0.1.4"
+    "./utils/mime": {
+      "require": "./dist/utils/mime/index.js",
+      "import": "./dist/utils/mime/index.mjs"
     },
-    "devDependencies": {
-        "@typescript-eslint/eslint-plugin": "^5.33.1",
-        "@typescript-eslint/parser": "^5.33.1",
-        "bumpp": "^8.2.1",
-        "bun-types": "^0.1.8",
-        "eslint": "^8.22.0",
-        "nodemon": "^2.0.19",
-        "tsup": "^6.2.2",
-        "typescript": "^4.7.4"
+    "./utils/sanitize": {
+      "require": "./dist/utils/sanitize/index.js",
+      "import": "./dist/utils/sanitize/index.mjs"
     },
-    "main": "dist/index.js",
-    "module": "dist/index.mjs",
-    "types": "dist/index.d.ts",
-    "exports": {
-        ".": {
-            "require": "./dist/index.js",
-            "import": "./dist/index.mjs"
-        },
-        "./utils/is": {
-            "require": "./dist/utils/is/index.js",
-            "import": "./dist/utils/is/index.mjs"
-        },
-        "./utils/mime": {
-            "require": "./dist/utils/mime/index.js",
-            "import": "./dist/utils/mime/index.mjs"
-        },
-        "./utils/sanitize": {
-            "require": "./dist/utils/sanitize/index.js",
-            "import": "./dist/utils/sanitize/index.mjs"
-        },
-        "./utils/*": {
-            "require": "./dist/utils/*.js",
-            "import": "./dist/utils/*.mjs"
-        },
-        "./utils/parsers/body": {
-            "require": "./dist/utils/parsers/body/index.js",
-            "import": "./dist/utils/parsers/body/index.mjs"
-        },
-        "./utils/parsers/json": {
-            "require": "./dist/utils/parsers/json/index.js",
-            "import": "./dist/utils/parsers/json/index.mjs"
-        },
-        "./utils/parsers/qs": {
-            "require": "./dist/utils/parsers/qs/index.js",
-            "import": "./dist/utils/parsers/qs/index.mjs"
-        },
-        "./mw/cors": {
-            "require": "./dist/mw/cors/index.js",
-            "import": "./dist/mw/cors/index.mjs"
-        },
-        "./mw/request-id": {
-            "require": "./dist/mw/request-id/index.js",
-            "import": "./dist/mw/request-id/index.mjs"
-        },
-        "./mw/body-parser": {
-            "require": "./dist/mw/body-parser/index.js",
-            "import": "./dist/mw/body-parser/index.mjs"
-        },
-        "./mw/uploads": {
-            "require": "./dist/mw/uploads/index.js",
-            "import": "./dist/mw/uploads/index.mjs"
-        },
-        "./mw/*": {
-            "require": "./dist/mw/*.js",
-            "import": "./dist/mw/*.mjs"
-        },
-        "./package.json": "./package.json"
+    "./utils/*": {
+      "require": "./dist/utils/*.js",
+      "import": "./dist/utils/*.mjs"
     },
-    "files": [
-        "dist",
-        "utils",
-        "parsers"
-    ],
-    "typesVersions": {
-        "*": {
-            "utils/is": [
-                "./dist/utils/is"
-            ],
-            "utils/mime": [
-                "./dist/utils/mime"
-            ],
-            "utils/sanitize": [
-                "./dist/utils/sanitize"
-            ],
-            "utils/parsers/body": [
-                "./dist/utils/parsers/body"
-            ],
-            "utils/parsers/json": [
-                "./dist/utils/parsers/json"
-            ],
-            "utils/parsers/qs": [
-                "./dist/utils/parsers/qs"
-            ],
-            "utils/*": [
-                "./dist/utils/*"
-            ],
-            "mw/cors": [
-                "./dist/mw/cors"
-            ],
-            "mw/request-id": [
-                "./dist/mw/request-id"
-            ],
-            "mw/body-parser": [
-                "./dist/mw/body-parser"
-            ],
-            "mw/uploads": [
-                "./dist/mw/uploads"
-            ]
-        }
+    "./utils/parsers/body": {
+      "require": "./dist/utils/parsers/body/index.js",
+      "import": "./dist/utils/parsers/body/index.mjs"
+    },
+    "./utils/parsers/json": {
+      "require": "./dist/utils/parsers/json/index.js",
+      "import": "./dist/utils/parsers/json/index.mjs"
+    },
+    "./utils/parsers/qs": {
+      "require": "./dist/utils/parsers/qs/index.js",
+      "import": "./dist/utils/parsers/qs/index.mjs"
+    },
+    "./mw/cors": {
+      "require": "./dist/mw/cors/index.js",
+      "import": "./dist/mw/cors/index.mjs"
+    },
+    "./mw/request-id": {
+      "require": "./dist/mw/request-id/index.js",
+      "import": "./dist/mw/request-id/index.mjs"
+    },
+    "./mw/body-parser": {
+      "require": "./dist/mw/body-parser/index.js",
+      "import": "./dist/mw/body-parser/index.mjs"
+    },
+    "./mw/uploads": {
+      "require": "./dist/mw/uploads/index.js",
+      "import": "./dist/mw/uploads/index.mjs"
+    },
+    "./mw/*": {
+      "require": "./dist/mw/*.js",
+      "import": "./dist/mw/*.mjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "bugs": "https://github.com/one-aalam/bun-tea/issues",
+  "denoify": {
+    "index": "src/index.ts",
+    "includes": []
+  },
+  "description": "Fast, Bun-powered, and Bun-only(for now) Web API framework with full Typescript support.",
+  "files": [
+    "dist",
+    "utils",
+    "parsers"
+  ],
+  "homepage": "https://github.com/one-aalam/bun-tea",
+  "keywords": [
+    "bun",
+    "web",
+    "framework",
+    "http",
+    "middleware"
+  ],
+  "license": "MIT",
+  "scripts": {
+    "dev": "nodemon --config nodemon.json",
+    "build": "bun run build:tsup --dts-resolve",
+    "build:tsup": "tsup",
+    "release": "bumpp --commit --push --tag && npm publish",
+    "prepublishOnly": "bun run build",
+    "test": "bun wiptest"
+  },
+  "types": "dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "utils/is": [
+        "./dist/utils/is"
+      ],
+      "utils/mime": [
+        "./dist/utils/mime"
+      ],
+      "utils/sanitize": [
+        "./dist/utils/sanitize"
+      ],
+      "utils/parsers/body": [
+        "./dist/utils/parsers/body"
+      ],
+      "utils/parsers/json": [
+        "./dist/utils/parsers/json"
+      ],
+      "utils/parsers/qs": [
+        "./dist/utils/parsers/qs"
+      ],
+      "utils/*": [
+        "./dist/utils/*"
+      ],
+      "mw/cors": [
+        "./dist/mw/cors"
+      ],
+      "mw/request-id": [
+        "./dist/mw/request-id"
+      ],
+      "mw/body-parser": [
+        "./dist/mw/body-parser"
+      ],
+      "mw/uploads": [
+        "./dist/mw/uploads"
+      ]
     }
+  }
 }

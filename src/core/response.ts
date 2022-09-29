@@ -10,7 +10,7 @@ import { HTTP_STATUS_CODES } from './constants/codes'
  */
 export function json<T = void>(data: T, args: ResponseInit = {}): Response {
     const headers = new Headers(args.headers || {})
-    headers.set('Content-Type', getContentType('json'))
+    headers.set('Content-Type', getContentType('json') as string)
     const status = args.status || 200
     const statusText = args.statusText || HTTP_STATUS_CODES[status]
     if(typeof data === 'object' && data != null) {
@@ -32,7 +32,7 @@ export function json<T = void>(data: T, args: ResponseInit = {}): Response {
  */
 export function text(text: string, args: ResponseInit = {}): Response {
     const headers = new Headers(args.headers || {})
-    headers?.set('Content-Type', getContentType('text'))
+    headers?.set('Content-Type', getContentType('text') as string)
     const status = args.status || 200
     const statusText = args.statusText || HTTP_STATUS_CODES[status]
     return new Response(text.toString(), { ...args, status, statusText, headers });
@@ -40,7 +40,7 @@ export function text(text: string, args: ResponseInit = {}): Response {
 
 export function html(text: string, args: ResponseInit = {}): Response {
     const headers = new Headers(args.headers || {})
-    headers?.set('Content-Type', getContentType('html'))
+    headers?.set('Content-Type', getContentType('html') as string)
     const status = args.status || 200
     const statusText = args.statusText || HTTP_STATUS_CODES[status]
     return new Response(text.toString(), { ...args, status, statusText, headers });
@@ -62,9 +62,9 @@ export async function send(body: any, args: ResponseInit = {}): Promise<Response
     } else if(typeof body === 'object' && body !== null) {
         // `json` updates its header, so no changes required
     } else if(typeof body === 'string') {
-        headers.set('Content-Type', getContentType('text'))
+        headers.set('Content-Type', getContentType('text') as string)
     } else {
-        headers.set('Content-Type', getContentType('html'))
+        headers.set('Content-Type', getContentType('html') as string)
     }
 
     // @TODO: populate Etag
@@ -99,7 +99,7 @@ export async function send(body: any, args: ResponseInit = {}): Promise<Response
     }
     else if(Buffer.isBuffer(sendable)){
         if(!headers.get('Content-Type')) {
-            headers.set('Content-Type', getContentType('octet-stream'))
+            headers.set('Content-Type', getContentType('octet-stream') as string)
         }
         return new Response(sendable, {
             ...args,
@@ -112,6 +112,7 @@ export async function send(body: any, args: ResponseInit = {}): Promise<Response
         })
     } else if(sendable instanceof Blob) {
         if(sendable.type.includes('json')) {
+            // @ts-ignore
             return json(await sendable.json(), {
             ...args,
             headers
@@ -141,7 +142,7 @@ export async function sendFile(path: string, args: ResponseInit = {}): Promise<R
     const fileName = path.substring(path.lastIndexOf('/') + 1, path.length)
     headers.set('Content-Disposition', `attachment; filename=${fileName}`)
     headers.set('Content-Transfer-Encoding', 'binary')
-    headers.set('Content-Type', getContentType('octet-stream'))
+    headers.set('Content-Type', getContentType('octet-stream') as string)
     return new Response(new Blob([
         await file.arrayBuffer()
     ], {

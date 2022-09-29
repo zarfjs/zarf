@@ -43,19 +43,56 @@
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
       "require": "./dist/index.js",
       "import": "./dist/index.mjs"
     },
-    "./utils/*": {
-      "types": "./dist/utils/**/index.d.ts",
-      "require": "./dist/utils/**/index.js",
-      "import": "./dist/utils/**/index.mjs"
+    "./utils/is": {
+      "require": "./dist/utils/is/index.js",
+      "import": "./dist/utils/is/index.mjs"
     },
-    "./parsers/*": {
-      "types": "./dist/parsers/**/index.d.ts",
-      "require": "./dist/parsers/**/index.js",
-      "import": "./dist/parsers/**/index.mjs"
+    "./utils/mime": {
+        "require": "./dist/utils/mime/index.js",
+        "import": "./dist/utils/mime/index.mjs"
+    },
+    "./utils/sanitize": {
+        "require": "./dist/utils/sanitize/index.js",
+        "import": "./dist/utils/sanitize/index.mjs"
+    },
+    "./utils/*": {
+        "require": "./dist/utils/*.js",
+        "import": "./dist/utils/*.mjs"
+    },
+    "./utils/parsers/body": {
+        "require": "./dist/utils/parsers/body/index.js",
+        "import": "./dist/utils/parsers/body/index.mjs"
+    },
+    "./utils/parsers/json": {
+        "require": "./dist/utils/parsers/json/index.js",
+        "import": "./dist/utils/parsers/json/index.mjs"
+    },
+    "./utils/parsers/qs": {
+        "require": "./dist/utils/parsers/qs/index.js",
+        "import": "./dist/utils/parsers/qs/index.mjs"
+    },
+    "./mw/cors": {
+        "require": "./dist/mw/cors/index.js",
+        "import": "./dist/mw/cors/index.mjs"
+    },
+    "./mw/request-id": {
+        "require": "./dist/mw/request-id/index.js",
+        "import": "./dist/mw/request-id/index.mjs"
+    },
+    "./mw/body-parser": {
+        "require": "./dist/mw/body-parser/index.js",
+        "import": "./dist/mw/body-parser/index.mjs"
+    },
+    "./mw/uploads": {
+        "require": "./dist/mw/uploads/index.js",
+        "import": "./dist/mw/uploads/index.mjs"
+    },
+    "./mw/*": {
+        "require": "./dist/mw/*.js",
+        "import": "./dist/mw/*.mjs"
     },
     "./package.json": "./package.json"
   },
@@ -63,5 +100,42 @@
     "dist",
     "utils",
     "parsers"
-  ]
+  ],
+  "typesVersions": {
+    "*": {
+        "utils/is": [
+            "./dist/utils/is"
+        ],
+        "utils/mime": [
+            "./dist/utils/mime"
+        ],
+        "utils/sanitize": [
+            "./dist/utils/sanitize"
+        ],
+        "utils/parsers/body": [
+            "./dist/utils/parsers/body"
+        ],
+        "utils/parsers/json": [
+            "./dist/utils/parsers/json"
+        ],
+        "utils/parsers/qs": [
+            "./dist/utils/parsers/qs"
+        ],
+        "utils/*": [
+            "./dist/utils/*"
+        ],
+        "mw/cors": [
+            "./dist/mw/cors"
+        ],
+        "mw/request-id": [
+            "./dist/mw/request-id"
+        ],
+        "mw/body-parser": [
+            "./dist/mw/body-parser"
+        ],
+        "mw/uploads": [
+            "./dist/mw/uploads"
+        ]
+    }
+  }
 }

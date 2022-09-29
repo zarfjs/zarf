@@ -1,6 +1,6 @@
 {
   "name": "bun-tea",
-  "version": "0.0.1-alpha.14",
+  "version": "0.0.1-alpha.15",
   "author": "Aftab Alam <one.aalam@gmail.com>",
   "repository": {
     "type": "git",
@@ -79,7 +79,7 @@
   "denoify": {
     "index": "src/index.ts",
     "includes": [
-        "!src/core/utils/mime.test.ts"
+      "!src/core/utils/mime.test.ts"
     ]
   },
   "description": "Fast, Bun-powered, and Bun-only(for now) Web API framework with full Typescript support.",

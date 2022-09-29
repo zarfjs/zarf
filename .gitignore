@@ -173,4 +173,4 @@ dist
 local_store.sqlite
 
 # Deno
-deno_dist
+# deno_dist

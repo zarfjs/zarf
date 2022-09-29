@@ -1,9 +1,0 @@
-# WIP middlewares
-body-parser.ts
-http-content-encoding.ts
-http-cors.ts
-mw-cors.ts
-mw-jwt.ts
-mw-rate-limit.ts
-mw-request-id.ts
-mw-upload.ts

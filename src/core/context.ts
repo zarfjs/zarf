@@ -51,7 +51,7 @@ export class AppContext<S extends Record<string, any> = {}> {
 
         this.url = new URL(req.url)
         this.host = this.url.host
-        this.path = this._config.strictRouting || this.url.pathname === '/' ?
+        this.path = this._config?.strictRouting || this.url.pathname === '/' ?
             this.url.pathname :
             this.url.pathname.endsWith('/') ?
                 this.url.pathname.substring(0, this.url.pathname.length -1) :
@@ -64,7 +64,7 @@ export class AppContext<S extends Record<string, any> = {}> {
             get: (headers, header) => headers.get(header as string),
         })
 
-        if(this._config.serverHeader) {
+        if(this._config?.serverHeader) {
             this._response.headers.set('Server', this._config.serverHeader)
         }
 

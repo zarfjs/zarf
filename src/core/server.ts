@@ -8,7 +8,7 @@ import { isObject } from './utils/is'
 import { getMountPath } from './utils/app'
 
 import { ROUTE_OPTION_DEFAULT } from './constants'
-import { HTTP_STATUS_CODES } from './constants/codes'
+import { BunTeaCustomError, BunTeaMethodNotAllowedError, BunTeaUnprocessableEntityError, sendError } from './errors'
 
 export class BunTea<S extends Record<string, any> = {}, M extends Record<string, any> = {}> {
     /**
@@ -63,25 +63,38 @@ export class BunTea<S extends Record<string, any> = {}, M extends Record<string,
      *
      * @returns
      */
-    private notFoundHandler = (): Response | Promise<Response> => {
-        return new Response("No matching routes discovered!", {
+    private notFoundHandler = (ctx: AppContext<S>): Response | Promise<Response> => {
+        return new Response(`No matching ${ctx.method.toUpperCase()} routes discovered for the path: ${ctx.path}`, {
           status: 404,
+        });
+    }
+
+    private notFoundVerbHandler = (ctx: AppContext<S>): Response | Promise<Response> => {
+        return new Response(`No implementations found for the verb: ${ctx.method.toUpperCase()}`, {
+            status: 404,
         });
     }
 
     // wrapper around the application's error handler method.
     // It maps a set of errors to app errors before calling the application's error handler method.
     // @TODO: Intercept all the error types
-    serverErrorHandler = (err: Errorlike): Response | Promise<Response> | Promise<undefined> | undefined => {
-        return new Response(err.message.toString(), { status: 500 });
+    serverErrorHandler = (error: Errorlike): Response | Promise<Response> | Promise<undefined> | undefined => {
         // check for errors like
         // - Header fields too large
         // - Request/Processing Timeout
         // - Request Body/Entity too large
-        // - Method not allowed (for GET only requests)
-        // - Or, just Bad request
-        // and call the `app.errorHandler`
-        // return this.errorHandler(ctx, error)
+            // - Method not allowed (for GET only requests)
+           if(error instanceof BunTeaMethodNotAllowedError) {
+               // do something...
+               return sendError(error)
+           }
+           // - Or, just Bad request
+           else if(error instanceof BunTeaUnprocessableEntityError) {
+               // do something
+               return sendError(error)
+           } else {
+               return sendError(error)
+           }
     }
 
     /**
@@ -95,8 +108,12 @@ export class BunTea<S extends Record<string, any> = {}, M extends Record<string,
         const basePath = path.substring(0, path.lastIndexOf('/'))
         if(basePath && this.appList[basePath]) {
             return this.appList[basePath].errorHandler(ctx, error)
-        }else {
-            return this.config.errorHandler?.(ctx, error)
+        } else {
+            if(error instanceof BunTeaCustomError) {
+                return this.serverErrorHandler(error)
+            } else {
+                return this.config.errorHandler?.(ctx, error)
+            }
         }
     }
 
@@ -245,67 +262,80 @@ export class BunTea<S extends Record<string, any> = {}, M extends Record<string,
     public async handle(req: Request) {
         const ctx = new AppContext<S>(req, this.config)
         const { path , method } = ctx
+
+        if(this.config.getOnly && method !== 'get') {
+            return this.errorHandler(ctx, new BunTeaMethodNotAllowedError())
+        }
         /**
          * Global "App-level" middlewares
          */
-        if(this.middlewares?.before && this.middlewares?.before.length) {
-            const resp = await exec(ctx, this.middlewares.before)
-            if(resp || ctx.isImmediate) return resp
+        try {
+            if(this.middlewares?.before && this.middlewares?.before.length) {
+                const resp = await exec(ctx, this.middlewares.before)
+                if(resp || ctx.isImmediate) return resp
+            }
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                return this.errorHandler(ctx, error)
+            }
         }
         /**
          * Group-level middlewars. Could halt execution, or respond
          */
-        const basePath = path.substring(0, path.lastIndexOf('/'))
-        if(this.pathMiddlewares[path] && this.pathMiddlewares[path].before.length) {
-            const resp = await exec(ctx, this.pathMiddlewares[path].before)
-            if(ctx.isImmediate || resp) return resp
-        } else if(basePath && this.pathMiddlewares[basePath] && this.pathMiddlewares[basePath].before.length) {
-            // middlewares discovered for a base path on a route cannot halt execution
-            await exec(ctx, this.pathMiddlewares[basePath].before)
+        try {
+            const basePath = path.substring(0, path.lastIndexOf('/'))
+            if(this.pathMiddlewares[path] && this.pathMiddlewares[path].before.length) {
+                const resp = await exec(ctx, this.pathMiddlewares[path].before)
+                if(ctx.isImmediate || resp) return resp
+            } else if(basePath && this.pathMiddlewares[basePath] && this.pathMiddlewares[basePath].before.length) {
+                // middlewares discovered for a base path on a route cannot halt execution
+                await exec(ctx, this.pathMiddlewares[basePath].before)
+            }
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                return this.errorHandler(ctx, error)
+            }
         }
 
-        if(!this.routes[method]) return defaultErrorHandler(ctx, new Error(`No routes provided for the incoming VERB`))
+        if(!this.routes[method]) return this.notFoundVerbHandler(ctx)
+
         /**
          * Identify if there's a handler
          */
         const route = this.resolve(method, path)
-        if(route) {
-            // use middlewares
-            if(route.middlewares && route.middlewares.length) {
-                try {
-                    const resp = await exec<S>(ctx, route.middlewares)
-                    if(resp || ctx.isImmediate) return resp as Response
-                } catch (error: unknown) {
-                    if (error instanceof Error) {
-                        return this.errorHandler(ctx, error)
-                        // return new Response(error.message, { status: 400 });
-                    }
-                }
-            }
-            if(route.controller) {
-                try {
-                    const response = await route.controller(ctx as AppContext<S>, {...route.params, ...{}})
-                    if(ctx.isImmediate) {
-                        return response
-                    } else if(this.middlewares.after.length) {
-                        ctx.response = response
-                        const resp = await exec(ctx, this.middlewares.after)
-                        if(resp) return resp
-                    }
-                    if(ctx.afterMiddlewares.length) {
-                        const resp = await exec(ctx, ctx.afterMiddlewares)
-                        if(resp) return resp
-                    }
-                    return response;
-                } catch (error: unknown) {
-                    if (error instanceof Error) {
-                        return this.errorHandler(ctx, error)
-                        // return new Response(error.message, { status: 400 });
-                    }
+        if(!route) return this.notFoundHandler(ctx)
+        // use middlewares
+        if(route.middlewares && route.middlewares.length) {
+            try {
+                const resp = await exec<S>(ctx, route.middlewares)
+                if(resp || ctx.isImmediate) return resp as Response
+            } catch (error: unknown) {
+                if (error instanceof Error) {
+                    return this.errorHandler(ctx, error)
                 }
             }
         }
-        return this.notFoundHandler()
+        if(route.controller) {
+            try {
+                const response = await route.controller(ctx as AppContext<S>, {...route.params, ...{}})
+                if(ctx.isImmediate) {
+                    return response
+                } else if(this.middlewares.after.length) {
+                    ctx.response = response
+                    const resp = await exec(ctx, this.middlewares.after)
+                    if(resp) return resp
+                }
+                if(ctx.afterMiddlewares.length) {
+                    const resp = await exec(ctx, ctx.afterMiddlewares)
+                    if(resp) return resp
+                }
+                return response;
+            } catch (error: unknown) {
+                if (error instanceof Error) {
+                    return this.errorHandler(ctx, error)
+                }
+            }
+        }
     }
 
     /**
@@ -473,8 +503,7 @@ export class BunTea<S extends Record<string, any> = {}, M extends Record<string,
 }
 
 function defaultErrorHandler<S extends Record<string, string> = {}>(ctx: AppContext<S>, err: Errorlike): Response {
-    const errorCode = parseInt(err.code as string || '') || 500
-    return new Response(err.message || HTTP_STATUS_CODES[errorCode], { status: errorCode  });
+    return sendError(err)!
 }
 
 class BunTeaRouteGroup<S extends Record<string, string>> {

@@ -1,17 +1,9 @@
 import { Errorlike } from "bun";
-import { pick } from '../core/utils/choose'
-import { badRequest, internalServerError, notFound, unprocessableEntity } from "./response/created";
-import { RespCreatorRequestInit } from "./response/creator";
-import { HTTPStatusCodeMesssageKey } from '../core/constants/codes'
+import { pick } from '../utils/choose'
+import { HTTPStatusCodeMesssageKey } from '../constants/codes'
+import { serverErrorFns } from './config'
 
 type ErrorData = { [key: string]: any };
-
-const errorFns: Partial<Record<HTTPStatusCodeMesssageKey, (body?: BodyInit | null, init?: RespCreatorRequestInit) => Response>> = {
-    'InternalServerError': internalServerError,
-    'NotFound': notFound,
-    'BadRequest': badRequest,
-    'UnprocessableEntity': unprocessableEntity
-}
 
 export class BunTeaCustomError extends Error implements Errorlike {
   constructor(
@@ -30,6 +22,13 @@ export class BunTeaNotFoundError extends BunTeaCustomError {
   }
 }
 
+export class BunTeaMethodNotAllowedError extends BunTeaCustomError {
+    constructor() {
+      super(`Requested method is not allowed for the server.`, 'MethodNotAllowed');
+      this.name = this.constructor.name;
+    }
+}
+
 export class BunTeaBadRequestError extends BunTeaCustomError {
   constructor(errorData: ErrorData) {
     super('There were validation errors.', 'BadRequest', errorData);
@@ -46,7 +45,7 @@ export class BunTeaUnprocessableEntityError extends BunTeaCustomError {
 
 export const sendError = (error: Errorlike) => {
     const isErrorSafeForClient = error instanceof BunTeaCustomError;
-    const send = error.code ? errorFns[error.code as HTTPStatusCodeMesssageKey] : errorFns['InternalServerError']
+    const send = error.code ? serverErrorFns[error.code as HTTPStatusCodeMesssageKey] : serverErrorFns['InternalServerError']
     const { message, data } = isErrorSafeForClient
       ? pick(error, ['message', 'data'])
       : {

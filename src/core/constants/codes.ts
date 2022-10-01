@@ -1,4 +1,5 @@
-export const HTTP_STATUS_CODES: Record<number, string> = {
+import { Replace } from '../utils/types'
+export const HTTP_STATUS_CODES = {
     // Informational
     100: 'Continue',
     101: 'Switching Protocols',
@@ -35,4 +36,8 @@ export const HTTP_STATUS_CODES: Record<number, string> = {
     502: 'Bad Gateway',
     503: 'Service Unavailable',
     504: 'Gateway Timeout'
-}
+} as const
+
+export type HTTPStatusCode = keyof typeof HTTP_STATUS_CODES
+export type HTTPStatusCodeMesssage = typeof HTTP_STATUS_CODES[HTTPStatusCode]
+export type HTTPStatusCodeMesssageKey = Replace<Replace<HTTPStatusCodeMesssage, ' ', '', { all: true }>, '-', '', { all: true }>

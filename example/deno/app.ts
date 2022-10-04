@@ -7,7 +7,7 @@ interface AppLocals {
 
 const app = new Zarf<AppLocals>({
     appName: 'ZarfRoot',
-    serverHeader: `Bun-Tea`,
+    serverHeader: `Zarf`,
     strictRouting: false,
     getOnly: false,
 })
@@ -54,7 +54,7 @@ app.get("/v1/*brand/shop/*name", (ctx, params) => {
 })
 
 app.get("/", (ctx) => {
-    return ctx.html(`Welcome to Bun-Tea Deno App server`)
+    return ctx.html(`Welcome to Zarf Deno App server`)
 })
 
 console.log(`Server started on 3000`)

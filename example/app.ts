@@ -59,7 +59,7 @@ app.get("/send", async (ctx) => {
 })
 
 app.get("/", (ctx) => {
-    return ctx.html(`Welcome to Bun-Tea App server`)
+    return ctx.html(`Welcome to Zarf App server`)
 })
 
 app.listen({

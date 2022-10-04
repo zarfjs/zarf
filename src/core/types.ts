@@ -3,6 +3,23 @@ import { AppContext as PrivateAppContext } from './context'
 import { MiddlewareFunction } from './middleware';
 import type { Replace } from './utils/types'
 
+// Global Type aliases
+export type RouteMethod = "get" | "post" | "put" | "patch" | "delete" | "head" | "options"
+export type HeaderVaryContent = 'Origin' | 'User-Agent' | 'Accept-Encoding' | 'Accept' | 'Accept-Language'
+export type HeaderTypeContent = 'text' | 'json' | 'html'
+
+//  Context interfaces/types
+// The context that could be shared to `RouteHandler`
+export type AppContext<S extends Record<string, string> = {}> = Omit<PrivateAppContext<S>,
+    'after' |
+    'afterMiddlewares'
+>
+// Context-internal interfaces/types
+export interface ContextMeta {
+    startTime: number
+}
+
+// `Zarf` Application config
 export interface ZarfConfig<S extends Record<string, any> = {}> {
     appName?: string
     serverHeader?: string
@@ -11,29 +28,27 @@ export interface ZarfConfig<S extends Record<string, any> = {}> {
     errorHandler?: (ctx: PrivateAppContext<S>, error: Errorlike) => Response | Promise<Response> | Promise<undefined> | undefined
 }
 
+// `Zarf` lister options
 export interface ZarfOptions {
     port?: number,
     development?: boolean,
     hostname?: string
 }
 
+// `Route` types
 export interface Route<S extends Record<string, any> = {}> {
     id: string
     matcher: RegExp
-    controller: Controller<{}, S>
+    handler: RouteHandler<{}, S>
     vars: Array<string>
     options: any,
     middlewares?: Array<MiddlewareFunction<S>>
 }
-
 export type RouteStack<S extends Record<string, any> = {}> = Record<RouteMethod, Array<Route<S>>>
-
-
 export interface ResolvedRoute {
-    controller: Controller
+    handler: RouteHandler
     params: Record<string, string|number|boolean>
 }
-
 export interface RouteProps {
     context: PrivateAppContext;
     request: Request;
@@ -68,9 +83,8 @@ export type RouteParams<T extends string> = {
     [key in RouteParamNames<T>]: string
 }
 
-export type RouteMethod = "get" | "post" | "put" | "patch" | "delete" | "head" | "options"
+// `Route Handler` types
 
 type Path = string;
-export type AppContext<S extends Record<string, string> = {}> = Omit<PrivateAppContext<S>, 'after' | 'afterMiddlewares'>
-export type RegisterRoute<T extends Record<string, string> = {}> = ( method: RouteMethod, path: Path, controller: Controller<T> ) => void;
-export type Controller<T extends Record<string, string> = {}, S extends Record<string, string> = {}> = (context: AppContext<S>, params: T) => Response | Promise<Response>
+export type RegisterRoute<T extends Record<string, string> = {}> = ( method: RouteMethod, path: Path, handler: RouteHandler<T> ) => void;
+export type RouteHandler<T extends Record<string, string> = {}, S extends Record<string, string> = {}> = (context: AppContext<S>, params: T) => Response | Promise<Response>

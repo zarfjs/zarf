@@ -1,19 +1,8 @@
-import type { ZarfConfig, RouteMethod } from './types'
+import type { ContextMeta, ZarfConfig, RouteMethod, HeaderVaryContent, HeaderTypeContent } from './types'
 import type { ParsedBody } from './utils/parsers/req-body'
 import { json, text, head, send, html } from './response'
 import { getContentType } from './utils/mime'
 import { MiddlewareFunction } from './middleware'
-
-/**
- * Context-internal interfaces/types
- */
-
-interface ContextMeta {
-    startTime: number
-}
-
-type HeaderVaryContent = 'Origin' | 'User-Agent' | 'Accept-Encoding' | 'Accept' | 'Accept-Language'
-type HeaderTypeContent = 'text' | 'json' | 'html'
 
 /**
  * Execution context for handlers and all the middlewares

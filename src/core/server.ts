@@ -1,5 +1,5 @@
 import type { Errorlike, Server } from 'bun'
-import type { ZarfConfig, ZarfOptions, RouteStack, Controller, Route, RouteMethod, RouteParams  } from './types'
+import type { ZarfConfig, ZarfOptions, RouteStack, RouteHandler, Route, RouteMethod, RouteParams  } from './types'
 
 import { AppContext } from './context'
 import { MiddlewareFunction, exec, MiddlewareType } from './middleware'
@@ -8,7 +8,11 @@ import { isObject } from './utils/is'
 import { getMountPath } from './utils/app'
 
 import { ROUTE_OPTION_DEFAULT } from './constants'
-import { ZarfCustomError, ZarfMethodNotAllowedError, ZarfUnprocessableEntityError, sendError } from './errors'
+import {
+    ZarfCustomError, ZarfMethodNotAllowedError, ZarfUnprocessableEntityError,
+    sendError,
+    defaultErrorHandler, notFoundHandler, notFoundVerbHandler
+} from './errors'
 
 export class Zarf<S extends Record<string, any> = {}, M extends Record<string, any> = {}> {
     /**
@@ -56,23 +60,6 @@ export class Zarf<S extends Record<string, any> = {}, M extends Record<string, a
             errorHandler
         }
         this.handle = this.handle.bind(this)
-    }
-
-    /// SERVER ERROR HANDLERS ///
-    /**
-     *
-     * @returns
-     */
-    private notFoundHandler = (ctx: AppContext<S>): Response | Promise<Response> => {
-        return new Response(`No matching ${ctx.method.toUpperCase()} routes discovered for the path: ${ctx.path}`, {
-          status: 404,
-        });
-    }
-
-    private notFoundVerbHandler = (ctx: AppContext<S>): Response | Promise<Response> => {
-        return new Response(`No implementations found for the verb: ${ctx.method.toUpperCase()}`, {
-            status: 404,
-        });
     }
 
     // wrapper around the application's error handler method.
@@ -138,12 +125,12 @@ export class Zarf<S extends Record<string, any> = {}, M extends Record<string, a
         options[ROUTE_OPTION_DEFAULT] = options[ROUTE_OPTION_DEFAULT] || {}
 
         // Identify Handler and and/or middlewares
-        let controller: Controller<{}, S>;
+        let handler: RouteHandler<{}, S>;
         let middlewares: Array<MiddlewareFunction<S>> = []
         if(args.length === 1) {
-            controller = args.pop()
+            handler = args.pop()
         } else if(args.length === 2) {
-            controller = args.pop()
+            handler = args.pop()
             middlewares = args.pop()
         } else {
             return new Error('too many arguments provided')
@@ -205,7 +192,7 @@ export class Zarf<S extends Record<string, any> = {}, M extends Record<string, a
             id,
             matcher: new RegExp(`^/${regExp}$`),
             vars,
-            controller,
+            handler,
             options,
             middlewares
         })
@@ -259,20 +246,25 @@ export class Zarf<S extends Record<string, any> = {}, M extends Record<string, a
      * @param req
      * @returns
      */
-    public async handle(req: Request) {
+    public async handle(req: Request, workerOptions?: {
+        waitUntil?: () => Promise<void>,
+        env?: any,
+        ctx?: any
+    }): Promise<Response|undefined> {
         const ctx = new AppContext<S>(req, this.config)
         const { path , method } = ctx
+        // @ts-ignore
 
         if(this.config.getOnly && method !== 'get') {
-            return this.errorHandler(ctx, new ZarfMethodNotAllowedError())
+            return this.errorHandler(ctx, new ZarfMethodNotAllowedError()) as Response
         }
         /**
          * Global "App-level" middlewares
          */
         try {
             if(this.middlewares?.before && this.middlewares?.before.length) {
-                const resp = await exec(ctx, this.middlewares.before)
-                if(resp || ctx.isImmediate) return resp
+                const _response = await exec(ctx, this.middlewares.before)
+                if(ctx.isImmediate || _response) return _response!
             }
         } catch (error: unknown) {
             if (error instanceof Error) {
@@ -285,8 +277,8 @@ export class Zarf<S extends Record<string, any> = {}, M extends Record<string, a
         try {
             const basePath = path.substring(0, path.lastIndexOf('/'))
             if(this.pathMiddlewares[path] && this.pathMiddlewares[path].before.length) {
-                const resp = await exec(ctx, this.pathMiddlewares[path].before)
-                if(ctx.isImmediate || resp) return resp
+                const _response = await exec(ctx, this.pathMiddlewares[path].before)
+                if(ctx.isImmediate || _response) return _response!
             } else if(basePath && this.pathMiddlewares[basePath] && this.pathMiddlewares[basePath].before.length) {
                 // middlewares discovered for a base path on a route cannot halt execution
                 await exec(ctx, this.pathMiddlewares[basePath].before)
@@ -297,13 +289,13 @@ export class Zarf<S extends Record<string, any> = {}, M extends Record<string, a
             }
         }
 
-        if(!this.routes[method]) return this.notFoundVerbHandler(ctx)
+        if(!this.routes[method]) return notFoundVerbHandler<S>(ctx)
 
         /**
          * Identify if there's a handler
          */
         const route = this.resolve(method, path)
-        if(!route) return this.notFoundHandler(ctx)
+        if(!route) return notFoundHandler<S>(ctx)
         // use middlewares
         if(route.middlewares && route.middlewares.length) {
             try {
@@ -315,21 +307,22 @@ export class Zarf<S extends Record<string, any> = {}, M extends Record<string, a
                 }
             }
         }
-        if(route.controller) {
+        if(route.handler) {
             try {
-                const response = await route.controller(ctx as AppContext<S>, {...route.params, ...{}})
+                const response = await route.handler(ctx as AppContext<S>, {...route.params, ...{}})
                 if(ctx.isImmediate) {
                     return response
                 } else if(this.middlewares.after.length) {
                     ctx.response = response
-                    const resp = await exec(ctx, this.middlewares.after)
-                    if(resp) return resp
+                    const _response = await exec(ctx, this.middlewares.after)
+                    if(_response && !ctx.afterMiddlewares.length) return _response
                 }
                 if(ctx.afterMiddlewares.length) {
-                    const resp = await exec(ctx, ctx.afterMiddlewares)
-                    if(resp) return resp
+                    ctx.response = response
+                    const _response = await exec(ctx, ctx.afterMiddlewares)
+                    return _response ? _response : ctx.response
                 }
-                return response;
+                return response
             } catch (error: unknown) {
                 if (error instanceof Error) {
                     return this.errorHandler(ctx, error)
@@ -341,11 +334,11 @@ export class Zarf<S extends Record<string, any> = {}, M extends Record<string, a
     /**
      *
      * @param path
-     * @param controller
+     * @param handler
      */
-    get<Path extends string = string>(path: Path, controller: Controller<RouteParams<Path>, S>): void;
-    get<Path extends string = string>(path: Path, middlewares: Array<MiddlewareFunction<M & Partial<S>>>, controller: Controller<RouteParams<Path>, S>): void;
-    get<Path extends string = string>(path: Path, ...args: Array<Controller<RouteParams<Path>, S> | Array<MiddlewareFunction<M & Partial<S>>>>) {
+    get<Path extends string = string>(path: Path, handler: RouteHandler<RouteParams<Path>, S>): void;
+    get<Path extends string = string>(path: Path, middlewares: Array<MiddlewareFunction<M & Partial<S>>>, handler: RouteHandler<RouteParams<Path>, S>): void;
+    get<Path extends string = string>(path: Path, ...args: Array<RouteHandler<RouteParams<Path>, S> | Array<MiddlewareFunction<M & Partial<S>>>>) {
         this.register('get', path, ...args);
         return this
     }
@@ -353,11 +346,11 @@ export class Zarf<S extends Record<string, any> = {}, M extends Record<string, a
     /**
      *
      * @param path
-     * @param controller
+     * @param handler
      */
-    post<Path extends string = string>(path: Path, controller: Controller<RouteParams<Path>, S>): void;
-    post<Path extends string = string>(path: Path, middlewares: Array<MiddlewareFunction<M & Partial<S>>>, controller: Controller<RouteParams<Path>, S>): void;
-    post<Path extends string = string>(path: Path, ...args: Array<Controller<RouteParams<Path>, S> | Array<MiddlewareFunction<M & Partial<S>>>>) {
+    post<Path extends string = string>(path: Path, handler: RouteHandler<RouteParams<Path>, S>): void;
+    post<Path extends string = string>(path: Path, middlewares: Array<MiddlewareFunction<M & Partial<S>>>, handler: RouteHandler<RouteParams<Path>, S>): void;
+    post<Path extends string = string>(path: Path, ...args: Array<RouteHandler<RouteParams<Path>, S> | Array<MiddlewareFunction<M & Partial<S>>>>) {
         this.register('post', path, ...args);
         return this
     }
@@ -365,11 +358,11 @@ export class Zarf<S extends Record<string, any> = {}, M extends Record<string, a
     /**
      *
      * @param path
-     * @param controller
+     * @param handler
      */
-    put<Path extends string = string>(path: Path, controller: Controller<RouteParams<Path>, S>): void;
-    put<Path extends string = string>(path: Path, middlewares: Array<MiddlewareFunction<M & Partial<S>>>, controller: Controller<RouteParams<Path>, S>): void;
-    put<Path extends string = string>(path: Path, ...args: Array<Controller<RouteParams<Path>, S> | Array<MiddlewareFunction<M & Partial<S>>>>) {
+    put<Path extends string = string>(path: Path, handler: RouteHandler<RouteParams<Path>, S>): void;
+    put<Path extends string = string>(path: Path, middlewares: Array<MiddlewareFunction<M & Partial<S>>>, handler: RouteHandler<RouteParams<Path>, S>): void;
+    put<Path extends string = string>(path: Path, ...args: Array<RouteHandler<RouteParams<Path>, S> | Array<MiddlewareFunction<M & Partial<S>>>>) {
         this.register('put', path, ...args)
         return this
     }
@@ -377,11 +370,11 @@ export class Zarf<S extends Record<string, any> = {}, M extends Record<string, a
     /**
      *
      * @param path
-     * @param controller
+     * @param handler
      */
-    patch<Path extends string = string>(path: Path, controller: Controller<RouteParams<Path>, S>): void;
-    patch<Path extends string = string>(path: Path, middlewares: Array<MiddlewareFunction<M & Partial<S>>>, controller: Controller<RouteParams<Path>, S>): void;
-    patch<Path extends string = string>(path: Path, ...args: Array<Controller<RouteParams<Path>, S> | Array<MiddlewareFunction<M & Partial<S>>>>) {
+    patch<Path extends string = string>(path: Path, handler: RouteHandler<RouteParams<Path>, S>): void;
+    patch<Path extends string = string>(path: Path, middlewares: Array<MiddlewareFunction<M & Partial<S>>>, handler: RouteHandler<RouteParams<Path>, S>): void;
+    patch<Path extends string = string>(path: Path, ...args: Array<RouteHandler<RouteParams<Path>, S> | Array<MiddlewareFunction<M & Partial<S>>>>) {
         this.register('patch', path, ...args)
         return this
     }
@@ -389,11 +382,11 @@ export class Zarf<S extends Record<string, any> = {}, M extends Record<string, a
     /**
      *
      * @param path
-     * @param controller
+     * @param handler
      */
-    del<Path extends string = string>(path: Path, controller: Controller<RouteParams<Path>, S>): void;
-    del<Path extends string = string>(path: Path, middlewares: Array<MiddlewareFunction<M & Partial<S>>>, controller: Controller<RouteParams<Path>, S>): void;
-    del<Path extends string = string>(path: Path, ...args: Array<Controller<RouteParams<Path>, S> | Array<MiddlewareFunction<M & Partial<S>>>>) {
+    del<Path extends string = string>(path: Path, handler: RouteHandler<RouteParams<Path>, S>): void;
+    del<Path extends string = string>(path: Path, middlewares: Array<MiddlewareFunction<M & Partial<S>>>, handler: RouteHandler<RouteParams<Path>, S>): void;
+    del<Path extends string = string>(path: Path, ...args: Array<RouteHandler<RouteParams<Path>, S> | Array<MiddlewareFunction<M & Partial<S>>>>) {
         this.register('delete', path, ...args)
         return this
     }
@@ -401,11 +394,11 @@ export class Zarf<S extends Record<string, any> = {}, M extends Record<string, a
     /**
      *
      * @param path
-     * @param controller
+     * @param handler
      */
-     opt<Path extends string = string>(path: Path, controller: Controller<RouteParams<Path>, S>): void;
-     opt<Path extends string = string>(path: Path, middlewares: Array<MiddlewareFunction<M & Partial<S>>>, controller: Controller<RouteParams<Path>, S>): void;
-     opt<Path extends string = string>(path: Path, ...args: Array<Controller<RouteParams<Path>, S> | Array<MiddlewareFunction<M & Partial<S>>>>) {
+     opt<Path extends string = string>(path: Path, handler: RouteHandler<RouteParams<Path>, S>): void;
+     opt<Path extends string = string>(path: Path, middlewares: Array<MiddlewareFunction<M & Partial<S>>>, handler: RouteHandler<RouteParams<Path>, S>): void;
+     opt<Path extends string = string>(path: Path, ...args: Array<RouteHandler<RouteParams<Path>, S> | Array<MiddlewareFunction<M & Partial<S>>>>) {
          this.register('options', path, ...args)
          return this
      }
@@ -419,13 +412,13 @@ export class Zarf<S extends Record<string, any> = {}, M extends Record<string, a
      * @param prefix
      * @param app
      */
-     mount<M>(prefix: string, app: Zarf<M>) {
+     mount<M extends Record<string, any> = {}>(prefix: string, app: Zarf<M>) {
         for(const routeType in app.routes as RouteStack<M>) {
             for(const route of app.routes[routeType as RouteMethod] as Array<Route<M>>) {
                 this.register(
                     routeType as RouteMethod,
                     getMountPath(prefix, route.id),
-                    route.middlewares, route.controller
+                    route.middlewares, route.handler
                 )
             }
         }
@@ -451,7 +444,7 @@ export class Zarf<S extends Record<string, any> = {}, M extends Record<string, a
      * @returns
      */
     use (middleware: MiddlewareFunction<M>, type: MiddlewareType = 'before') {
-        this.middlewares[type].push(middleware as MiddlewareFunction<S>)
+        this.middlewares[type].push(middleware as unknown as MiddlewareFunction<S>)
         return this
     }
 
@@ -472,6 +465,14 @@ export class Zarf<S extends Record<string, any> = {}, M extends Record<string, a
             return console.error(`Can't shutdown as there are pending requests. You might wanna wait or forcibly shut the server instance?`)
         }
         return this.server?.stop()
+    }
+
+    fetch = async(req: Request, env?: any, ctx?: any) => {
+        return await this.handle(req, {
+            waitUntil: ctx?.waitUntil?.bind(ctx) ?? ((_f: any) => { }),
+            env,
+            ctx,
+        })
     }
 
     listen({
@@ -502,10 +503,6 @@ export class Zarf<S extends Record<string, any> = {}, M extends Record<string, a
     }
 }
 
-function defaultErrorHandler<S extends Record<string, string> = {}>(ctx: AppContext<S>, err: Errorlike): Response {
-    return sendError(err)!
-}
-
 class ZarfRouteGroup<S extends Record<string, string>> {
     private prefix = ''
     private register: (method: RouteMethod, url: string, ...args: any) => void
@@ -525,29 +522,29 @@ class ZarfRouteGroup<S extends Record<string, string>> {
         if(args.length) registerMw(this.prefix, ...args)
     }
 
-    get<Path extends string = string>(path: Path, controller: Controller<RouteParams<Path>, S>) {
-        this.register('get', getMountPath(this.prefix, path), controller);
+    get<Path extends string = string>(path: Path, handler: RouteHandler<RouteParams<Path>, S>) {
+        this.register('get', getMountPath(this.prefix, path), handler);
         return this as Omit<typeof this, 'group'>
     }
-    post<Path extends string = string>(path: string, controller: Controller<RouteParams<Path>, S>) {
-        this.register('post', getMountPath(this.prefix, path), controller);
+    post<Path extends string = string>(path: string, handler: RouteHandler<RouteParams<Path>, S>) {
+        this.register('post', getMountPath(this.prefix, path), handler);
         return this as Omit<typeof this, 'group'>
     }
-    put<Path extends string = string>(path: string, controller: Controller<RouteParams<Path>, S>) {
-        this.register('put', getMountPath(this.prefix, path), controller);
+    put<Path extends string = string>(path: string, handler: RouteHandler<RouteParams<Path>, S>) {
+        this.register('put', getMountPath(this.prefix, path), handler);
         return this as Omit<typeof this, 'group'>
     }
-    patch<Path extends string = string>(path: string, controller: Controller<RouteParams<Path>, S>) {
-        this.register('patch', getMountPath(this.prefix, path), controller);
+    patch<Path extends string = string>(path: string, handler: RouteHandler<RouteParams<Path>, S>) {
+        this.register('patch', getMountPath(this.prefix, path), handler);
         return this as Omit<typeof this, 'group'>
     }
-    del<Path extends string = string>(path: string, controller: Controller<RouteParams<Path>, S>) {
-        this.register('delete', getMountPath(this.prefix, path), controller);
+    del<Path extends string = string>(path: string, handler: RouteHandler<RouteParams<Path>, S>) {
+        this.register('delete', getMountPath(this.prefix, path), handler);
         return this as Omit<typeof this, 'group'>
     }
-    all<Path extends string = string>(path: string, controller: Controller<RouteParams<Path>, S>) {
+    all<Path extends string = string>(path: string, handler: RouteHandler<RouteParams<Path>, S>) {
         ['get', 'post', 'put', 'patch', 'delete'].forEach(verb => {
-            this.register(verb as RouteMethod, getMountPath(this.prefix, path), controller);
+            this.register(verb as RouteMethod, getMountPath(this.prefix, path), handler);
         })
         return this as Omit<typeof this, 'group'>
     }

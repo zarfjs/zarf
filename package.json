@@ -4,7 +4,7 @@
   "author": "Aftab Alam <one.aalam@gmail.com>",
   "repository": {
     "type": "git",
-    "url": "https://github.com/one-aalam/bun-tea.git"
+    "url": "https://github.com/bun-tea/bun-tea.git"
   },
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -75,7 +75,7 @@
     },
     "./package.json": "./package.json"
   },
-  "bugs": "https://github.com/one-aalam/bun-tea/issues",
+  "bugs": "https://github.com/bun-tea/bun-tea/issues",
   "denoify": {
     "index": "src/index.ts",
     "includes": [
@@ -88,7 +88,7 @@
     "utils",
     "parsers"
   ],
-  "homepage": "https://github.com/one-aalam/bun-tea",
+  "homepage": "https://github.com/bun-tea/bun-tea",
   "keywords": [
     "bun",
     "web",

@@ -4,7 +4,7 @@ Fast, Bun-powered, and Bun-only(for now) Web API framework with full Typescript 
 ## Quickstart
 Starting with `Zarf` is as simple as instantiating the `Zarf` class, attaching route handlers and finally starting the server
 ```ts
-import { Zarf } from "bun-tea"
+import { Zarf } from "@zarfjs/zarf"
 
 const app = new Zarf()
 
@@ -15,7 +15,7 @@ app.get("/hello", (ctx) => {
 })
 
 app.get("/", (ctx) => {
-    return ctx.html(`Welcome to Bun-Tea App server`)
+    return ctx.html(`Welcome to Zarf App server`)
 })
 
 app.listen({
@@ -25,7 +25,7 @@ app.listen({
 })
 ```
 ## App and Routing
-Routes are how you tell where/when/what to respond when somebody visits your app's URLs, and `bun-tea` lets you easily register routes, with all the commonly used HTTP verbs like `GET`, `POST`, `PUT`, `DELETE`, etc.
+Routes are how you tell where/when/what to respond when somebody visits your app's URLs, and `@zarfjs/zarf` lets you easily register routes, with all the commonly used HTTP verbs like `GET`, `POST`, `PUT`, `DELETE`, etc.
 
 Here's how you'd define your app routes -
 
@@ -89,7 +89,7 @@ app.get("/products/:id", (ctx, params) => {
     })
 })
 ```
-`bun-tea` supports all the common URL patterns you'd expect in a Web-App/API framework
+`@zarfjs/zarf` supports all the common URL patterns you'd expect in a Web-App/API framework
 ```ts
 app.get("/user/:name/books/:title", (ctx, params) => {
     const { name, title } = params
@@ -124,7 +124,7 @@ app.get("/v1/*brand/shop/*name", (ctx, params) => {
 ## RoadMap
 A lot of great stuff is actually planned for the project. The Alpha version is majorly focussing on making the core stable and provide all the essential features. Here's snapshot of the [roadmap](https://github.com/users/one-aalam/projects/3/views/1).(private)
 
-<img src="./assets/code/roadmap.png" alt="Bun-Tea Roadmap" />
+<img src="./assets/code/roadmap.png" alt="Zarf Roadmap" />
 
 
 

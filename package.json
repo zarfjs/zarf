@@ -1,10 +1,10 @@
 {
-  "name": "bun-tea",
+  "name": "@zarfjs/zarf",
   "version": "0.0.1-alpha.16",
   "author": "Aftab Alam <one.aalam@gmail.com>",
   "repository": {
     "type": "git",
-    "url": "https://github.com/bun-tea/bun-tea.git"
+    "url": "https://github.com/zarfjs/zarf.git"
   },
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -75,7 +75,7 @@
     },
     "./package.json": "./package.json"
   },
-  "bugs": "https://github.com/bun-tea/bun-tea/issues",
+  "bugs": "https://github.com/zarfjs/zarf/issues",
   "denoify": {
     "index": "src/index.ts",
     "includes": [
@@ -88,7 +88,7 @@
     "utils",
     "parsers"
   ],
-  "homepage": "https://github.com/bun-tea/bun-tea",
+  "homepage": "https://github.com/zarfjs/zarf",
   "keywords": [
     "bun",
     "web",
@@ -97,6 +97,9 @@
     "middleware"
   ],
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "dev": "nodemon --config nodemon.json",
     "build": "bun run build:tsup --dts-resolve",

@@ -1,8 +1,8 @@
-# Bun Tea
+# Zarf
 Fast, Bun-powered, and Bun-only(for now) Web API framework with full Typescript support.
 
 ## Quickstart
-Starting with `bun-tea` is as simple as instantiating the `BunTea` class, attaching route handlers and finally starting the server
+Starting with `zarf` is as simple as instantiating the `Zarf` class, attaching route handlers and finally starting the server
 ```ts
 import { BunTea } from "bun-tea"
 

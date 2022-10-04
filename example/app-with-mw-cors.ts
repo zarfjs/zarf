@@ -1,7 +1,7 @@
-import { BunTea } from '../src'
+import { Zarf } from '../src'
 import { cors } from '../src/middlewares/mw-cors'
 
-const app = new BunTea()
+const app = new Zarf()
 
 app.use(cors(), 'after')
 

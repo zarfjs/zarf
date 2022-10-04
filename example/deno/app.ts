@@ -1,12 +1,12 @@
-import { BunTea } from "../../deno_dist/core/server.ts"
+import { Zarf } from "../../deno_dist/core/server.ts"
 import { serve } from "https://deno.land/std@0.158.0/http/server.ts"
 
 interface AppLocals {
     user: string
 }
 
-const app = new BunTea<AppLocals>({
-    appName: 'BunTeaRoot',
+const app = new Zarf<AppLocals>({
+    appName: 'ZarfRoot',
     serverHeader: `Bun-Tea`,
     strictRouting: false,
     getOnly: false,

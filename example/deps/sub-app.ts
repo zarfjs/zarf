@@ -1,10 +1,10 @@
-import { BunTea } from "../../src"
+import { Zarf } from "../../src"
 
 interface AppLocals {
     user: string
 }
 
-export const subApp = new BunTea<AppLocals>()
+export const subApp = new Zarf<AppLocals>()
 
 subApp.get("/goodbye", (ctx) => {
     return ctx.json({

@@ -1,8 +1,8 @@
-import { BunTea } from '../src'
+import { Zarf } from '../src'
 import { bodyParser } from '~/middlewares/mw-body-parser'
 import { uploads } from '~/middlewares/mw-uploads'
 
-const app = new BunTea()
+const app = new Zarf()
 
 app.post("/users", [ bodyParser({
     extensions: ['jpg', 'jpeg'],

@@ -1,4 +1,4 @@
-import type { BunTeaConfig, RouteMethod } from './types'
+import type { ZarfConfig, RouteMethod } from './types'
 import type { ParsedBody } from './utils/parsers/req-body'
 import { json, text, head, send, html } from './response'
 import { getContentType } from './utils/mime'
@@ -20,7 +20,7 @@ type HeaderTypeContent = 'text' | 'json' | 'html'
  */
 export class AppContext<S extends Record<string, any> = {}> {
     private _response: Response | null
-    private _config: BunTeaConfig<S> = {}
+    private _config: ZarfConfig<S> = {}
     private _error: any
     private _code: number | undefined;
     private _middlewares: Array<MiddlewareFunction<S>> = []
@@ -41,7 +41,7 @@ export class AppContext<S extends Record<string, any> = {}> {
 
     public body: ParsedBody | null = null
 
-    constructor(req: Request, config: BunTeaConfig<S>) {
+    constructor(req: Request, config: ZarfConfig<S>) {
         this.meta.startTime = Date.now()
         this._config = config
         this._request = req

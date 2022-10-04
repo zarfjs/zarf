@@ -1,5 +1,5 @@
 import type { Errorlike, Server } from 'bun'
-import type { BunTeaConfig, BunTeaOptions, RouteStack, Controller, Route, RouteMethod, RouteParams  } from './types'
+import type { ZarfConfig, ZarfOptions, RouteStack, Controller, Route, RouteMethod, RouteParams  } from './types'
 
 import { AppContext } from './context'
 import { MiddlewareFunction, exec, MiddlewareType } from './middleware'
@@ -8,18 +8,18 @@ import { isObject } from './utils/is'
 import { getMountPath } from './utils/app'
 
 import { ROUTE_OPTION_DEFAULT } from './constants'
-import { BunTeaCustomError, BunTeaMethodNotAllowedError, BunTeaUnprocessableEntityError, sendError } from './errors'
+import { ZarfCustomError, ZarfMethodNotAllowedError, ZarfUnprocessableEntityError, sendError } from './errors'
 
-export class BunTea<S extends Record<string, any> = {}, M extends Record<string, any> = {}> {
+export class Zarf<S extends Record<string, any> = {}, M extends Record<string, any> = {}> {
     /**
      * App Config
      */
-    private readonly config: BunTeaConfig<S>
+    private readonly config: ZarfConfig<S>
     private server?: Server
     /**
      * App stores
      */
-    private appList: Record<string, BunTea<any>> = {}
+    private appList: Record<string, Zarf<any>> = {}
     /**
      * Route stores
      */
@@ -42,12 +42,12 @@ export class BunTea<S extends Record<string, any> = {}, M extends Record<string,
      * @param param0
      */
     constructor({
-        appName = 'BunTeaRoot',
+        appName = 'ZarfRoot',
         serverHeader = `Bun-Tea`,
         strictRouting = false,
         getOnly = false,
         errorHandler = defaultErrorHandler
-    }: BunTeaConfig<S> = {}){
+    }: ZarfConfig<S> = {}){
         this.config = {
             appName,
             serverHeader,
@@ -84,12 +84,12 @@ export class BunTea<S extends Record<string, any> = {}, M extends Record<string,
         // - Request/Processing Timeout
         // - Request Body/Entity too large
             // - Method not allowed (for GET only requests)
-           if(error instanceof BunTeaMethodNotAllowedError) {
+           if(error instanceof ZarfMethodNotAllowedError) {
                // do something...
                return sendError(error)
            }
            // - Or, just Bad request
-           else if(error instanceof BunTeaUnprocessableEntityError) {
+           else if(error instanceof ZarfUnprocessableEntityError) {
                // do something
                return sendError(error)
            } else {
@@ -109,7 +109,7 @@ export class BunTea<S extends Record<string, any> = {}, M extends Record<string,
         if(basePath && this.appList[basePath]) {
             return this.appList[basePath].errorHandler(ctx, error)
         } else {
-            if(error instanceof BunTeaCustomError) {
+            if(error instanceof ZarfCustomError) {
                 return this.serverErrorHandler(error)
             } else {
                 return this.config.errorHandler?.(ctx, error)
@@ -264,7 +264,7 @@ export class BunTea<S extends Record<string, any> = {}, M extends Record<string,
         const { path , method } = ctx
 
         if(this.config.getOnly && method !== 'get') {
-            return this.errorHandler(ctx, new BunTeaMethodNotAllowedError())
+            return this.errorHandler(ctx, new ZarfMethodNotAllowedError())
         }
         /**
          * Global "App-level" middlewares
@@ -419,7 +419,7 @@ export class BunTea<S extends Record<string, any> = {}, M extends Record<string,
      * @param prefix
      * @param app
      */
-     mount<M>(prefix: string, app: BunTea<M>) {
+     mount<M>(prefix: string, app: Zarf<M>) {
         for(const routeType in app.routes as RouteStack<M>) {
             for(const route of app.routes[routeType as RouteMethod] as Array<Route<M>>) {
                 this.register(
@@ -439,7 +439,7 @@ export class BunTea<S extends Record<string, any> = {}, M extends Record<string,
      * @returns
      */
     group(prefix: string = '/', ...args: Array<MiddlewareFunction<S>>) {
-        return new BunTeaRouteGroup<S>(this.register.bind(this), this.useOnPath.bind(this), prefix, ...args)
+        return new ZarfRouteGroup<S>(this.register.bind(this), this.useOnPath.bind(this), prefix, ...args)
     }
 
     /// MIDDLEWARES ///
@@ -478,7 +478,7 @@ export class BunTea<S extends Record<string, any> = {}, M extends Record<string,
         port = 3333,
         development = false,
         hostname = '0.0.0.0'
-    }: BunTeaOptions, startedCb?: (server: Server) => void) {
+    }: ZarfOptions, startedCb?: (server: Server) => void) {
         const self = this
         if (!Bun) throw new Error('Bun-Tea requires Bun to run')
 
@@ -506,7 +506,7 @@ function defaultErrorHandler<S extends Record<string, string> = {}>(ctx: AppCont
     return sendError(err)!
 }
 
-class BunTeaRouteGroup<S extends Record<string, string>> {
+class ZarfRouteGroup<S extends Record<string, string>> {
     private prefix = ''
     private register: (method: RouteMethod, url: string, ...args: any) => void
     private registerMw: (path: string, ...args: Array<MiddlewareFunction<S>>) => void
@@ -552,6 +552,6 @@ class BunTeaRouteGroup<S extends Record<string, string>> {
         return this as Omit<typeof this, 'group'>
     }
     group(path: string = '/', ...args: Array<MiddlewareFunction<S>>) {
-        return new BunTeaRouteGroup(this.register, this.registerMw, getMountPath(this.prefix, path), ...args)
+        return new ZarfRouteGroup(this.register, this.registerMw, getMountPath(this.prefix, path), ...args)
     }
 }

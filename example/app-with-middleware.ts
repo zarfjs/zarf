@@ -1,11 +1,11 @@
-import { BunTea } from "../src"
+import { Zarf } from "../src"
 import { logger, loggerAfter } from './deps/mw-logger'
 
 interface AppLocals {
     user: string
 }
 
-const app = new BunTea<AppLocals>()
+const app = new Zarf<AppLocals>()
 
 app.get("/hello/:name", [ logger() ], (ctx, params) => {
     console.log('before:', ctx.locals)

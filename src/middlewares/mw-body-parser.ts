@@ -2,7 +2,7 @@ import type { MiddlewareFunctionInitializer } from '../core/middleware'
 import type { ParsedFileField, ParsedFormData } from '../core/utils/parsers/form-data'
 import { parseBody } from '../core/utils/parsers/req-body'
 import { isObject } from '../core/utils/is'
-import { BunTeaUnprocessableEntityError } from '~/core/errors'
+import { ZarfUnprocessableEntityError } from '~/core/errors'
 
 type MiddlewareOptions = {
     extensions?: Array<string>,
@@ -74,7 +74,7 @@ export const bodyParser: MiddlewareFunctionInitializer<MiddlewareOptions> = (opt
                 // @ts-ignore
                 const errors = validateFormData(body, options)
                 if (Object.keys(errors).length) {
-                    throw new BunTeaUnprocessableEntityError(errors);
+                    throw new ZarfUnprocessableEntityError(errors);
                 }
             }
             ctx.body = body

@@ -2,11 +2,11 @@
 Fast, Bun-powered, and Bun-only(for now) Web API framework with full Typescript support.
 
 ## Quickstart
-Starting with `zarf` is as simple as instantiating the `Zarf` class, attaching route handlers and finally starting the server
+Starting with `Zarf` is as simple as instantiating the `Zarf` class, attaching route handlers and finally starting the server
 ```ts
-import { BunTea } from "bun-tea"
+import { Zarf } from "bun-tea"
 
-const app = new BunTea()
+const app = new Zarf()
 
 app.get("/hello", (ctx) => {
     return ctx.json({

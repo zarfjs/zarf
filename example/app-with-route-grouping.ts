@@ -1,11 +1,11 @@
-import { BunTea } from "../src"
+import { Zarf } from "../src"
 import { logger, loggerAfter } from './deps/mw-logger'
 
 interface AppLocals {
     user: string
 }
 
-const app = new BunTea<AppLocals>()
+const app = new Zarf<AppLocals>()
 
 const api = app.group("/api", (_, next) => {
     console.log("called from API")

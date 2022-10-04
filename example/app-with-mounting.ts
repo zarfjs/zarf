@@ -1,4 +1,4 @@
-import { BunTea } from "../src"
+import { Zarf } from "../src"
 import { logger, loggerAfter } from './deps/mw-logger'
 
 /**
@@ -8,7 +8,7 @@ interface AppLocals {
     user: string
 }
 
-const app = new BunTea<AppLocals>()
+const app = new Zarf<AppLocals>()
 
 app.get("/", (ctx) => {
     return ctx.halt(200, {
@@ -25,7 +25,7 @@ interface SubAppLocals {
     user: string
 }
 
-const subApp = new BunTea<SubAppLocals>()
+const subApp = new Zarf<SubAppLocals>()
 
 subApp.get("/goodbye/:name", [ logger() ], (ctx, params) => {
     return ctx.json({

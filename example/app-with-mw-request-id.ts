@@ -1,7 +1,7 @@
-import { BunTea } from '../src'
+import { Zarf } from '../src'
 import { requestId, RequestIdLocals } from '../src/middlewares/mw-request-id'
 
-const app = new BunTea<RequestIdLocals>()
+const app = new Zarf<RequestIdLocals>()
 
 app.use(requestId())
 

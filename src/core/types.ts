@@ -3,7 +3,7 @@ import { AppContext as PrivateAppContext } from './context'
 import { MiddlewareFunction } from './middleware';
 import type { Replace } from './utils/types'
 
-export interface BunTeaConfig<S extends Record<string, any> = {}> {
+export interface ZarfConfig<S extends Record<string, any> = {}> {
     appName?: string
     serverHeader?: string
     strictRouting?: boolean
@@ -11,7 +11,7 @@ export interface BunTeaConfig<S extends Record<string, any> = {}> {
     errorHandler?: (ctx: PrivateAppContext<S>, error: Errorlike) => Response | Promise<Response> | Promise<undefined> | undefined
 }
 
-export interface BunTeaOptions {
+export interface ZarfOptions {
     port?: number,
     development?: boolean,
     hostname?: string

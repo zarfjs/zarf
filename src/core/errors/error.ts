@@ -1,4 +1,4 @@
-import { Errorlike } from "bun";
+import type { Errorlike } from "bun";
 import { pick } from '../utils/choose'
 import { HTTPStatusCodeMesssageKey } from '../constants/codes'
 import { serverErrorFns } from './config'

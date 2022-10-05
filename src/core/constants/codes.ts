@@ -1,4 +1,4 @@
-import { Replace } from '../utils/types'
+import type { Replace } from '../utils/types'
 export const HTTP_STATUS_CODES = {
     // Informational
     100: 'Continue',

@@ -4,6 +4,9 @@ import { json, text, head, send, html } from './response'
 import { getContentType } from './utils/mime'
 import { MiddlewareFunction } from './middleware'
 
+// @ts-ignore
+const NEEDS_WARMUP = globalThis && globalThis.process && globalThis.process.isBun ? true : false
+
 /**
  * Execution context for handlers and all the middlewares
  */
@@ -37,7 +40,6 @@ export class AppContext<S extends Record<string, any> = {}> {
         this._response = new Response('')
 
         this.method = req.method.toLowerCase() as RouteMethod
-
         this.url = new URL(req.url)
         this.host = this.url.host
         this.path = this._config?.strictRouting || this.url.pathname === '/' ?
@@ -60,8 +62,12 @@ export class AppContext<S extends Record<string, any> = {}> {
         /**
          * Currently needed for reading request body using `json`, `text` or `arrayBuffer`
          * without taking forever to resolve when any of them are accessed later
+         *
+         * But, needed only for `Bun`. If left applied for all the cases, this creates an issue with Node.js, Deno, etc.
          */
-        this._request.blob();
+        if(NEEDS_WARMUP) {
+            this._request.blob();
+        }
     }
 
     /**

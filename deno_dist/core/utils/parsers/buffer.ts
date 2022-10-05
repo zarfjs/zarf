@@ -4,9 +4,25 @@ import { Buffer } from "https://deno.land/std@0.158.0/node/buffer.ts";
  * @param buffer ArrayBuffer
  * @returns
  */
-export function bufferToString(buffer: ArrayBuffer): string {
+export function asString(buffer: ArrayBuffer): string {
     return String.fromCharCode.apply(null, Array.from(new Uint16Array(buffer)));
 }
+
+/**
+ * Consistent `Buffer`
+ * @param input
+ * @returns
+ */
+export function asBuffer(input: Buffer | Uint8Array | ArrayBuffer): Buffer {
+    if (Buffer.isBuffer(input)) {
+        return input;
+    } else if (input instanceof ArrayBuffer) {
+        return Buffer.from(input);
+    } else {
+        // Offset & length allow us to support all sorts of buffer views:
+        return Buffer.from(input.buffer, input.byteOffset, input.byteLength);
+    }
+};
 
 /**
  * Converts `ArrayBuffer` to string (currently not used)

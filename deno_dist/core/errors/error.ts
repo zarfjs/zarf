@@ -1,4 +1,4 @@
-import { Errorlike } from "bun DENOIFY: UNKNOWN NODE BUILTIN";
+import type { Errorlike } from "bun DENOIFY: UNKNOWN NODE BUILTIN";
 import { pick } from '../utils/choose.ts'
 import { HTTPStatusCodeMesssageKey } from '../constants/codes.ts'
 import { serverErrorFns } from './config.ts'

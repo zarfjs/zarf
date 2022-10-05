@@ -1,5 +1,5 @@
 import { Buffer } from "https://deno.land/std@0.158.0/node/buffer.ts";
-import { bufferToString } from './buffer.ts'
+import { asString } from './buffer.ts'
 
 export async function getFormDataFromRequest(request: Request) {
     const boundary = getBoundary(request?.headers.get('Content-Type') || '')
@@ -54,7 +54,7 @@ async function getParsedFormData(request: Request, boundary: string, spotText?: 
     const _boundary = ' ' + `${boundary}`
     const result: Record<string, any> = {};
     const prefix = `--${_boundary.trim()}\r\nContent-Disposition: form-data; name="`
-    const data = bufferToString(Buffer.from(await request?.arrayBuffer()))
+    const data = asString(Buffer.from(await request?.arrayBuffer()))
     const multiParts = data.split(prefix).filter(
         part => part.includes('"')
     ).map(

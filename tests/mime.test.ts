@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { getMimeType, getContentType, getMimeExt } from './mime'
+import { getMimeType, getContentType, getMimeExt } from '../src/core/utils/mime'
 
 describe('mime', () => {
     describe('getMimeType', () => {

@@ -16,9 +16,11 @@
     "denoify": "^1.1.4",
     "eslint": "^8.22.0",
     "nodemon": "^2.0.19",
+    "publint": "^0.1.1",
     "rimraf": "^3.0.2",
     "tsup": "^6.2.2",
-    "typescript": "^4.7.4"
+    "typescript": "^4.7.4",
+    "vitest": "^0.23.4"
   },
   "exports": {
     ".": {
@@ -41,17 +43,17 @@
       "require": "./dist/utils/*.js",
       "import": "./dist/utils/*.mjs"
     },
-    "./utils/parsers/body": {
-      "require": "./dist/utils/parsers/body/index.js",
-      "import": "./dist/utils/parsers/body/index.mjs"
+    "./parsers/body": {
+      "require": "./dist/parsers/body/index.js",
+      "import": "./dist/parsers/body/index.mjs"
     },
-    "./utils/parsers/json": {
-      "require": "./dist/utils/parsers/json/index.js",
-      "import": "./dist/utils/parsers/json/index.mjs"
+    "./parsers/json": {
+      "require": "./dist/parsers/json/index.js",
+      "import": "./dist/parsers/json/index.mjs"
     },
-    "./utils/parsers/qs": {
-      "require": "./dist/utils/parsers/qs/index.js",
-      "import": "./dist/utils/parsers/qs/index.mjs"
+    "./parsers/qs": {
+      "require": "./dist/parsers/qs/index.js",
+      "import": "./dist/parsers/qs/index.mjs"
     },
     "./mw/cors": {
       "require": "./dist/mw/cors/index.js",
@@ -107,7 +109,10 @@
     "build:deno": "rimraf deno_dist && denoify",
     "release": "bumpp --commit --push --tag && npm publish",
     "prepublishOnly": "bun run build",
-    "test": "bun wiptest",
+    "test": "bun run test:wip && bun run test:pkg",
+    "test:wip": "bun wiptest",
+    "test:unit": "vitest run --reporter=verbose",
+    "test:pkg": "publint",
     "dev:deno": "deno run --unstable --reload --allow-read --allow-env --allow-net example/deno/app.ts"
   },
   "types": "dist/index.d.ts",
@@ -122,14 +127,14 @@
       "utils/sanitize": [
         "./dist/utils/sanitize"
       ],
-      "utils/parsers/body": [
-        "./dist/utils/parsers/body"
+      "parsers/body": [
+        "./dist/parsers/body"
       ],
-      "utils/parsers/json": [
-        "./dist/utils/parsers/json"
+      "parsers/json": [
+        "./dist/parsers/json"
       ],
-      "utils/parsers/qs": [
-        "./dist/utils/parsers/qs"
+      "parsers/qs": [
+        "./dist/parsers/qs"
       ],
       "utils/*": [
         "./dist/utils/*"

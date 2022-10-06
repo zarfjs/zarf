@@ -14,7 +14,8 @@ app.get("/hello", (ctx) => {
 
 app.post("/hello", async(ctx) => {
     const { request } = ctx
-    const body = await request?.json() // await request.text()
+    // `FormData` is not available in `Bun`, if you need this today, you might wanna give `BodyParser` a shot
+    const body = await request?.json()
     // do something with the body
     return ctx.json(body)
 })
@@ -63,7 +64,7 @@ app.get("/", (ctx) => {
 })
 
 app.listen({
-    port: 3000
+    port: 3000,
 }, (server) => {
     console.log(`Server started on ${server.port}`)
 })

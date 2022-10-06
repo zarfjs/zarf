@@ -240,21 +240,19 @@ export class Zarf<S extends Record<string, any> = {}, M extends Record<string, a
             params
         }
     }
+    public async fetch(req: RequestInfo, requestInit?: RequestInit): Promise<Response|undefined> {
+        const request = req instanceof Request ? req : new Request(req, requestInit)
+        return await this.handle(request)
+    }
 
     /**
      * Handle a route
      * @param req
      * @returns
      */
-    public async handle(req: Request, workerOptions?: {
-        waitUntil?: () => Promise<void>,
-        env?: any,
-        ctx?: any
-    }): Promise<Response|undefined> {
+    public async handle(req: Request, adapterCtx?: any): Promise<Response|undefined> {
         const ctx = new AppContext<S>(req, this.config)
         const { path , method } = ctx
-        // @ts-ignore
-
         if(this.config.getOnly && method !== 'get') {
             return this.errorHandler(ctx, new ZarfMethodNotAllowedError()) as Response
         }
@@ -465,14 +463,6 @@ export class Zarf<S extends Record<string, any> = {}, M extends Record<string, a
             return console.error(`Can't shutdown as there are pending requests. You might wanna wait or forcibly shut the server instance?`)
         }
         return this.server?.stop()
-    }
-
-    fetch = async(req: Request, env?: any, ctx?: any) => {
-        return await this.handle(req, {
-            waitUntil: ctx?.waitUntil?.bind(ctx) ?? ((_f: any) => { }),
-            env,
-            ctx,
-        })
     }
 
     listen({

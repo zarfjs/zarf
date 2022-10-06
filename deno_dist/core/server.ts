@@ -1,5 +1,5 @@
 import type { Errorlike, Server } from 'bun DENOIFY: UNKNOWN NODE BUILTIN'
-import type { ZarfConfig, ZarfBunOptions, RouteStack, RouteHandler, Route, RouteMethod, RouteParams  } from './types.ts'
+import type { ZarfConfig, ZarfOptions, RouteStack, RouteHandler, Route, RouteMethod, RouteParams  } from './types.ts'
 
 import { AppContext } from './context.ts'
 import { MiddlewareFunction, exec, MiddlewareType } from './middleware.ts'
@@ -240,15 +240,18 @@ export class Zarf<S extends Record<string, any> = {}, M extends Record<string, a
             params
         }
     }
+    public async fetch(req: RequestInfo, requestInit?: RequestInit): Promise<Response|undefined> {
+        const request = req instanceof Request ? req : new Request(req, requestInit)
+        return await this.handle(request)
+    }
 
     /**
      * Handle a route
      * @param req
      * @returns
      */
-    public async handle(req: RequestInfo, requestInit?: RequestInit): Promise<Response|undefined> {
-        const request = req instanceof Request ? req : new Request(req, requestInit)
-        const ctx = new AppContext<S>(request, this.config)
+    public async handle(req: Request, adapterCtx?: any): Promise<Response|undefined> {
+        const ctx = new AppContext<S>(req, this.config)
         const { path , method } = ctx
         if(this.config.getOnly && method !== 'get') {
             return this.errorHandler(ctx, new ZarfMethodNotAllowedError()) as Response
@@ -479,7 +482,7 @@ export class Zarf<S extends Record<string, any> = {}, M extends Record<string, a
         port = 3333,
         development = false,
         hostname = '0.0.0.0'
-    }: ZarfBunOptions, startedCb?: (server: Server) => void) {
+    }: ZarfOptions, startedCb?: (server: Server) => void) {
         const self = this
         if (!Bun) throw new Error('Bun-Tea requires Bun to run')
 

@@ -29,8 +29,7 @@ export interface ZarfConfig<S extends Record<string, any> = {}> {
 }
 
 // `Zarf` lister options
-export interface ZarfBunOptions {
-    fetch?(request: Request): Promise<Response>,
+export interface ZarfOptions {
     port?: number,
     development?: boolean,
     hostname?: string

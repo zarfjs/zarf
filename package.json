@@ -1,6 +1,6 @@
 {
   "name": "@zarfjs/zarf",
-  "version": "0.0.1-alpha.20",
+  "version": "0.0.1-alpha.21",
   "author": "Aftab Alam <one.aalam@gmail.com>",
   "repository": {
     "type": "git",
@@ -56,8 +56,8 @@
       "import": "./dist/parsers/qs/index.mjs"
     },
     "./parsers/*": {
-        "require": "./dist/parsers/*.js",
-        "import": "./dist/parsers/*.mjs"
+      "require": "./dist/parsers/*.js",
+      "import": "./dist/parsers/*.mjs"
     },
     "./mw/cors": {
       "require": "./dist/mw/cors/index.js",

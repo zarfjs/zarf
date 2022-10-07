@@ -55,6 +55,10 @@
       "require": "./dist/parsers/qs/index.js",
       "import": "./dist/parsers/qs/index.mjs"
     },
+    "./parsers/*": {
+        "require": "./dist/parsers/*.js",
+        "import": "./dist/parsers/*.mjs"
+    },
     "./mw/cors": {
       "require": "./dist/mw/cors/index.js",
       "import": "./dist/mw/cors/index.mjs"
@@ -127,6 +131,9 @@
       "utils/sanitize": [
         "./dist/utils/sanitize"
       ],
+      "utils/*": [
+        "./dist/utils/*"
+      ],
       "parsers/body": [
         "./dist/parsers/body"
       ],
@@ -136,8 +143,8 @@
       "parsers/qs": [
         "./dist/parsers/qs"
       ],
-      "utils/*": [
-        "./dist/utils/*"
+      "parsers/*": [
+        "./dist/parsers/*"
       ],
       "mw/cors": [
         "./dist/mw/cors"
@@ -150,6 +157,9 @@
       ],
       "mw/uploads": [
         "./dist/mw/uploads"
+      ],
+      "mw/*": [
+        "./dist/mw/*"
       ]
     }
   }

@@ -3,6 +3,14 @@ import { AppContext as PrivateAppContext } from './context'
 import { MiddlewareFunction } from './middleware';
 import type { Replace } from './utils/types'
 
+// Utility types
+export type JSONValue =
+    | string
+    | number
+    | boolean
+    | { [x: string]: JSONValue }
+    | Array<JSONValue>;
+
 // Global Type aliases
 export type RouteMethod = "get" | "post" | "put" | "patch" | "delete" | "head" | "options"
 export type HeaderVaryContent = 'Origin' | 'User-Agent' | 'Accept-Encoding' | 'Accept' | 'Accept-Language'

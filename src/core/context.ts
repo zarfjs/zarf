@@ -171,7 +171,7 @@ export class AppContext<S extends Record<string, any> = {}> {
      * @param body
      * @returns
      */
-    async send(body: any, args: ResponseInit = {}): Promise<Response> {
+    async send(body: JSONValue, args: ResponseInit = {}): Promise<Response> {
         if(this._request?.method === 'HEAD') return this.head()
         return await send(body, {...this.getResponseInit(), ...args})
     }
@@ -181,7 +181,7 @@ export class AppContext<S extends Record<string, any> = {}> {
      * @param body
      * @returns
      */
-    json(body: any, args: ResponseInit = {}): Response {
+    json(body: JSONValue, args: ResponseInit = {}): Response {
         return json(body, {...this.getResponseInit(), ...args})
     }
 
@@ -254,7 +254,7 @@ export class AppContext<S extends Record<string, any> = {}> {
      * @param statusCode
      * @returns
      */
-    redirect(url: string, statusCode: number = 302): Response {
+    redirect(url: string, statusCode: HTTPStatusCode = 302): Response {
         this._isImmediate = true
         let loc = url
         if(loc ==='back') loc = this._request?.headers.get('Referrer') || '/'

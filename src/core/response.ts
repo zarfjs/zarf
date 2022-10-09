@@ -1,5 +1,5 @@
 import { getContentType } from './utils/mime'
-import { HTTP_STATUS_CODES } from './constants/codes'
+import { HTTPStatusCode, HTTP_STATUS_CODES } from './constants/codes'
 
 /**
  * Response helper: Sends the provided data as `json` to the client
@@ -12,7 +12,7 @@ export function json<T = void>(data: T, args: ResponseInit = {}): Response {
     const headers = new Headers(args.headers || {})
     headers.set('Content-Type', getContentType('json') as string)
     const status = args.status || 200
-    const statusText = args.statusText || HTTP_STATUS_CODES[status]
+    const statusText = args.statusText || HTTP_STATUS_CODES[status as HTTPStatusCode]
     if(typeof data === 'object' && data != null) {
         return new Response( JSON.stringify(data, null, 0), { ...args, status, statusText, headers } )
     } else if(typeof data === 'string') {
@@ -34,7 +34,7 @@ export function text(text: string, args: ResponseInit = {}): Response {
     const headers = new Headers(args.headers || {})
     headers?.set('Content-Type', getContentType('text') as string)
     const status = args.status || 200
-    const statusText = args.statusText || HTTP_STATUS_CODES[status]
+    const statusText = args.statusText || HTTP_STATUS_CODES[status  as HTTPStatusCode]
     return new Response(text.toString(), { ...args, status, statusText, headers });
 }
 
@@ -42,13 +42,13 @@ export function html(text: string, args: ResponseInit = {}): Response {
     const headers = new Headers(args.headers || {})
     headers?.set('Content-Type', getContentType('html') as string)
     const status = args.status || 200
-    const statusText = args.statusText || HTTP_STATUS_CODES[status]
+    const statusText = args.statusText || HTTP_STATUS_CODES[status as HTTPStatusCode]
     return new Response(text.toString(), { ...args, status, statusText, headers });
 }
 
 export function head(args: ResponseInit = {}): Response {
     const status = args.status || 204
-    const statusText = args.statusText || HTTP_STATUS_CODES[status]
+    const statusText = args.statusText || HTTP_STATUS_CODES[status as HTTPStatusCode]
     return new Response('', {...args, status, statusText })
 }
 

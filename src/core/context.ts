@@ -1,8 +1,10 @@
-import type { ContextMeta, ZarfConfig, RouteMethod, HeaderVaryContent, HeaderTypeContent } from './types'
+import type { ContextMeta, ZarfConfig, RouteMethod, HeaderVaryContent, HeaderTypeContent, JSONValue } from './types'
 import type { ParsedBody } from './utils/parsers/req-body'
 import { json, text, head, send, html } from './response'
 import { getContentType } from './utils/mime'
 import { MiddlewareFunction } from './middleware'
+import { HTTP_STATUS_CODES, HTTPStatusCode } from './constants/codes'
+import { ZarfHaltError } from './errors/error'
 
 // @ts-ignore
 const NEEDS_WARMUP = globalThis && globalThis.process && globalThis.process.isBun ? true : false
@@ -197,7 +199,7 @@ export class AppContext<S extends Record<string, any> = {}> {
      * @param _text
      * @returns
      */
-     html(text: string, args: ResponseInit = {}): Response {
+    html(text: string, args: ResponseInit = {}): Response {
         return html(text, {...this.getResponseInit(), ...args})
     }
 
@@ -209,17 +211,40 @@ export class AppContext<S extends Record<string, any> = {}> {
         return head({...this.getResponseInit(), ...args})
     }
 
-
     /**
-     * Halt flow, and return with currently provided status
+     * Halt flow, and immediately return with provided HTTP status code
      *
-     * @param statusCode status code to use
-     * @param body the body to send in response. Could be `json`, `string`, etc.
+     * @param {number} statusCode - a valid HTTP status code
+     * @param {JSONValue} body - to send in response. Could be `json`, `string`, etc. or nothing at all
      * @returns
+     *
+     *
+     * @example HTTP Status
+     * app.get("/authorized", (ctx) => {
+     *     // do something to check user's authenticity
+     *     ctx.halt(401)
+     *     // this line, and lines next to this will never be reached
+     *     return ctx.text("Authorized")
+     * })
+     *
+     * @example HTTP Status and Body
+     * app.get("/authorized", (ctx) => {
+     *     // do something to check user's authenticity
+     *     ctx.halt(401, 'You shall not pass')
+     *     // this line, and lines next to this will never be reached
+     *     return ctx.text("Authorized")
+     * })
+     *
      */
-    async halt(statusCode: number, body: any): Promise<Response> {
-        this._isImmediate = true
-        return this.send(body, { ...this.getResponseInit(), status: statusCode })
+    halt(statusCode: HTTPStatusCode, body?: JSONValue) {
+        throw new ZarfHaltError(
+            statusCode,
+            body || HTTP_STATUS_CODES[statusCode],
+            {
+                ...this.getResponseInit(),
+                status: statusCode
+            }
+        )
     }
 
     /**
@@ -237,7 +262,8 @@ export class AppContext<S extends Record<string, any> = {}> {
     }
 
     /**
-     * Use the settings from available `Response` details, if there's one (as an outcome of handler processing and middleware execution)
+     * Use the settings from available `Response` details,
+     * if there's one (as an outcome of handler processing and middleware execution)
      * @returns
      */
     private getResponseInit(): ResponseInit {
@@ -267,5 +293,4 @@ export class AppContext<S extends Record<string, any> = {}> {
     get afterMiddlewares() {
         return this._middlewares
     }
-
 }

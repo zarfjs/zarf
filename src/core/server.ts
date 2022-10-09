@@ -11,8 +11,10 @@ import { ROUTE_OPTION_DEFAULT } from './constants'
 import {
     ZarfCustomError, ZarfMethodNotAllowedError, ZarfUnprocessableEntityError,
     sendError,
-    defaultErrorHandler, notFoundHandler, notFoundVerbHandler
+    defaultErrorHandler, notFoundHandler, notFoundVerbHandler, ZarfHaltError
 } from './errors'
+
+import { json } from './response'
 
 export class Zarf<S extends Record<string, any> = {}, M extends Record<string, any> = {}> {
     /**
@@ -98,6 +100,12 @@ export class Zarf<S extends Record<string, any> = {}, M extends Record<string, a
         } else {
             if(error instanceof ZarfCustomError) {
                 return this.serverErrorHandler(error)
+            } else if(error instanceof ZarfHaltError) {
+                const err = error as ZarfHaltError
+                return json(err.body, {
+                    ...err.init,
+                    status: err.code
+                })
             } else {
                 return this.config.errorHandler?.(ctx, error)
             }
@@ -240,6 +248,7 @@ export class Zarf<S extends Record<string, any> = {}, M extends Record<string, a
             params
         }
     }
+
     public async fetch(req: RequestInfo, requestInit?: RequestInit): Promise<Response|undefined> {
         const request = req instanceof Request ? req : new Request(req, requestInit)
         return await this.handle(request)

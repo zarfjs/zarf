@@ -1,6 +1,7 @@
 import type { Errorlike } from "bun";
+import type { JSONValue } from '../types'
 import { pick } from '../utils/choose'
-import { HTTPStatusCodeMesssageKey } from '../constants/codes'
+import { HTTPStatusCode, HTTPStatusCodeMesssageKey } from '../constants/codes'
 import { serverErrorFns } from './config'
 
 type ErrorData = { [key: string]: any };
@@ -13,6 +14,16 @@ export class ZarfCustomError extends Error implements Errorlike {
   ) {
     super();
   }
+}
+
+export class ZarfHaltError extends Error {
+    constructor(
+      readonly code: HTTPStatusCode,
+      readonly body: JSONValue,
+      readonly init: ResponseInit = {},
+    ) {
+      super();
+    }
 }
 
 export class ZarfNotFoundError extends ZarfCustomError {

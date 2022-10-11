@@ -96,3 +96,31 @@ export type RouteParams<T extends string> = {
 type Path = string;
 export type RegisterRoute<T extends Record<string, string> = {}> = ( method: RouteMethod, path: Path, handler: RouteHandler<T> ) => void;
 export type RouteHandler<T extends Record<string, string> = {}, S extends Record<string, string> = {}> = (context: AppContext<S>, params: T) => Response | Promise<Response>
+
+// Adapter Context
+export interface AdapterContext<T extends Record<string, JSONValue> = {}> {
+    waitUntil?(promise: Promise<void | unknown>): void;
+    signal?: {
+      aborted: boolean;
+    };
+    passThrough?(promise: Promise<void | unknown>): void;
+    platform: T,
+    [key: string | number]: unknown;
+}
+
+export interface AdapterServerListenerOptions {
+    port?: number,
+    development?: boolean,
+    hostname?: string,
+    log?: boolean
+}
+
+type CertFileExt = 'crt' | 'pem'
+type KeyFileExt = 'key' | 'pem'
+type CertFilePath = `./${string}.${CertFileExt}`
+type KeyFilePath = `./${string}.${KeyFileExt}`
+
+export interface AdapterServerHttpsOptions {
+    certFile: CertFilePath,
+    keyFile: KeyFilePath,
+}

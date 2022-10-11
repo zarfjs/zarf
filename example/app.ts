@@ -1,4 +1,6 @@
 import { Zarf } from "../src"
+import { JSONValue } from "~/core/types"
+import { html } from "~/core/utils/parsers/html"
 
 interface AppLocals {
     user: string
@@ -12,12 +14,20 @@ app.get("/hello", (ctx) => {
     })
 })
 
+const timeEl = (ts = new Date()) => html`
+  <time datetime="${ts.toISOString()}">${ts.toLocaleString()}</time>
+`;
+
+app.get("/hello/:user", async (ctx, params) => {
+    return ctx.html(html`Hello, ${params.user}! ${[1, 2, 3]} - ${timeEl}`)
+})
+
 app.post("/hello", async(ctx) => {
     const { request } = ctx
     // `FormData` is not available in `Bun`, if you need this today, you might wanna give `BodyParser` a shot
-    const body = await request?.json()
+    const body = await request?.json<JSONValue>()
     // do something with the body
-    return ctx.json(body)
+    return ctx.json(body!)
 })
 
 

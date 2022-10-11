@@ -11,9 +11,7 @@ interface AppLocals {
 const app = new Zarf<AppLocals>()
 
 app.get("/", (ctx) => {
-    return ctx.halt(200, {
-      message: "Hello World!",
-    });
+    return ctx.html(`Welcome to Zarf App - App Mounting Example Server`)
 })
 
 

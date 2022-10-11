@@ -33,9 +33,7 @@ app.get("/shop/product/color::color/size::size/dep::dep", (ctx, params) => {
 })
 
 app.get("/", (ctx) => {
-    return ctx.halt(200, {
-      message: "Hello World!",
-    });
+    return ctx.html(`Welcome to Zarf App - Advanced Route Example Server`)
 })
 
 

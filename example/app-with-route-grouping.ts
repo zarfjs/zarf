@@ -10,9 +10,9 @@ const app = new Zarf<AppLocals>()
 const api = app.group("/api", (_, next) => {
     console.log("called from API")
     return next()
-}, (ctx, next) => {
+}, async (ctx) => {
     console.log("called from API again")
-    return ctx.halt(200, "You've visited a group route. Please try going to some child route")
+    return ctx.html(`You've visited a group route. Please try going to some child route`)
 })
 
 const apiV1 = api.group('/v1', (_, next) => {
@@ -20,7 +20,7 @@ const apiV1 = api.group('/v1', (_, next) => {
     return next()
 })
 
-apiV1.get('/list', (ctx, params) => {
+apiV1.get('/list', (ctx) => {
     return ctx.json({
         list: 'list'
     })
@@ -44,9 +44,7 @@ apiV2.get('/user', (ctx) => {
 })
 
 app.get("/", (ctx) => {
-    return ctx.halt(200, {
-      message: "Hello World!",
-    });
+    return ctx.html(`Welcome to Zarf App - Route Grouping Example Server`)
 })
 
 app.use(logger()).use(loggerAfter, 'after')

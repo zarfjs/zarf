@@ -171,7 +171,7 @@ export class AppContext<S extends Record<string, any> = {}> {
      * @param body
      * @returns
      */
-    async send(body: JSONValue, args: ResponseInit = {}): Promise<Response> {
+    async send(body: JSONValue | Blob | BufferSource , args: ResponseInit = {}): Promise<Response> {
         if(this._request?.method === 'HEAD') return this.head()
         return await send(body, {...this.getResponseInit(), ...args})
     }

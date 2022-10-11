@@ -1,4 +1,5 @@
 import type { Errorlike } from "bun";
+import { ROUTE_OPTION_DEFAULT } from "./constants";
 import { AppContext as PrivateAppContext } from './context'
 import { MiddlewareFunction } from './middleware';
 import type { Replace } from './utils/types'
@@ -20,7 +21,8 @@ export type HeaderTypeContent = 'text' | 'json' | 'html'
 // The context that could be shared to `RouteHandler`
 export type AppContext<S extends Record<string, string> = {}> = Omit<PrivateAppContext<S>,
     'after' |
-    'afterMiddlewares'
+    'afterMiddlewares' |
+    'useAppConfigOnPath'
 >
 // Context-internal interfaces/types
 export interface ContextMeta {

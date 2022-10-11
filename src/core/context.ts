@@ -15,6 +15,7 @@ const NEEDS_WARMUP = globalThis && globalThis.process && globalThis.process.isBu
 export class AppContext<S extends Record<string, any> = {}> {
     private _response: Response | null
     private _config: ZarfConfig<S> = {}
+    private _relativeConfig: Record<string, ZarfConfig> = {}
     private _error: any
     private _code: number | undefined;
     private _middlewares: Array<MiddlewareFunction<S>> = []
@@ -286,11 +287,78 @@ export class AppContext<S extends Record<string, any> = {}> {
         }
     }
 
+    // MIDDLEWARE METHODS (MIDDLEWARE-ONLY USE)
+
+    /**
+     * Add a middleware that's invoked post the `Request` processing.
+     *
+     * IT'S INTENDED TO BE USED ONLY BY MIDDLEWARE DEVELOPERS. PLEASE DON'T
+     * THIS IF YOU'RE A FRAMEWORK USER/CONSUMER
+     *
+     * @param func {MiddlewareFunction}
+     */
     after(func: MiddlewareFunction<S>) {
         this._middlewares.push(func)
     }
 
+    /**
+     * Returns a list of all the POST middlewares.
+     *
+     * IT'S INTENDED TO BE USED ONLY BY MIDDLEWARE DEVELOPERS. PLEASE DON'T
+     * THIS IF YOU'RE A FRAMEWORK USER/CONSUMER
+     *
+     * @param func {MiddlewareFunction}
+     */
     get afterMiddlewares() {
         return this._middlewares
+    }
+
+    // MOUNT METHODS (PRIVATE USE)
+
+    public useAppConfigOnPath(prefix: string, config: ZarfConfig) {
+        this._relativeConfig[prefix] = config
+    }
+
+    private getAppPrefix() {
+        const path = this.path.substring(1)
+        return '/' + path.substring(0, path.indexOf('/'))
+    }
+
+    // MOUNT METHODS (PUBLIC USE)
+
+    /**
+     * Get the current app's configuration, as provided while instantiating
+     * the `Zarf` app
+     * @returns {ZarfConfig}
+     *
+     * @example Access inside a route handler
+     * app.get("/a-path-inside-main-or-mounted-app", (ctx) => {
+     *     // get the config
+     *     ctx.config
+     *     // go ahead...
+     * })
+     */
+    public get config(): ZarfConfig {
+        const appPrefix = this.getAppPrefix()
+        return (this._relativeConfig[appPrefix] ? this._relativeConfig[appPrefix] : this._config) as ZarfConfig
+    }
+
+    /**
+     * Get the relative path for the current app. Unlike `path` it isn't the
+     * full relative path from the base URL of the site, but the actual relative
+     * path you'd probably expect w.r.t a mounted app
+     *
+     * @returns {string} the relative path if it's a mounted app, or the original path if it's the main app
+     *
+     * @example Access inside a handler
+     * app.get("/a-path-inside-main-or-mounted-app", (ctx) => {
+     *     // get the relativeUrl
+     *     ctx.relativeUrl
+     *     // go ahead...
+     * })
+     */
+    public get relativePath() {
+        const appPrefix = this.getAppPrefix()
+        return this._relativeConfig[appPrefix] ? this.path.replace(appPrefix, '') : this.path
     }
 }

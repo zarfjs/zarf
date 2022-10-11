@@ -14,6 +14,10 @@ app.get("/", (ctx) => {
     return ctx.html(`Welcome to Zarf App - App Mounting Example Server`)
 })
 
+app.get("/hello", (ctx) => {
+    return ctx.html(`Welcome to Zarf App - App Mounting Example Server`)
+})
+
 
 /**
  * Sub-App
@@ -23,7 +27,9 @@ interface SubAppLocals {
     user: string
 }
 
-const subApp = new Zarf<SubAppLocals>()
+const subApp = new Zarf<SubAppLocals>({
+    appName: 'ZarfSubApp'
+})
 
 subApp.get("/goodbye/:name", [ logger() ], (ctx, params) => {
     return ctx.json({
@@ -38,6 +44,7 @@ subApp.use(logger()).use(loggerAfter, 'after')
  */
 
 app.mount<SubAppLocals>("/sub", subApp)
+
 
 /**
  * Listen

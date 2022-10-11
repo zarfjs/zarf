@@ -5,7 +5,7 @@ import { AppContext } from './context'
 import { MiddlewareFunction, exec, MiddlewareType } from './middleware'
 
 import { isObject } from './utils/is'
-import { getMountPath } from './utils/app'
+import { getMountPath, mountConfigMiddleware } from './utils/app'
 
 import { ROUTE_OPTION_DEFAULT } from './constants'
 import {
@@ -45,7 +45,7 @@ export class Zarf<S extends Record<string, any> = {}, M extends Record<string, a
 
     /**
      * App Constructor
-     * @param param0
+     * @param param
      */
     constructor({
         appName = 'ZarfRoot',
@@ -130,7 +130,7 @@ export class Zarf<S extends Record<string, any> = {}, M extends Record<string, a
         if(isObject(args.at(-1))) {
             options = args.pop()
         }
-        options[ROUTE_OPTION_DEFAULT] = options[ROUTE_OPTION_DEFAULT] || {}
+        options[ROUTE_OPTION_DEFAULT] = options[ROUTE_OPTION_DEFAULT] || { }
 
         // Identify Handler and and/or middlewares
         let handler: RouteHandler<{}, S>;
@@ -193,7 +193,6 @@ export class Zarf<S extends Record<string, any> = {}, M extends Record<string, a
             }
         })
         const regExp = regExpParts.join("/")
-
 
         if(!this.routes[method]) this.routes[method] = []
         this.routes[method]!.push({
@@ -420,12 +419,16 @@ export class Zarf<S extends Record<string, any> = {}, M extends Record<string, a
      * @param app
      */
      mount<M extends Record<string, any> = {}>(prefix: string, app: Zarf<M>) {
+        const preMountedApp = Object.keys(this.appList).find(appPrefix => prefix.startsWith(appPrefix))
+        if(preMountedApp) throw new Error(`Please try a different mount path that doesnt starts with ${prefix}. It's already taken by ${this.appList[preMountedApp].config.appName}`)
         for(const routeType in app.routes as RouteStack<M>) {
             for(const route of app.routes[routeType as RouteMethod] as Array<Route<M>>) {
                 this.register(
                     routeType as RouteMethod,
                     getMountPath(prefix, route.id),
-                    route.middlewares, route.handler
+                    // @ts-ignore
+                    [ mountConfigMiddleware({ prefix, config: app.config }) ].concat(route.middlewares),
+                    route.handler
                 )
             }
         }

@@ -17,7 +17,7 @@ export class AppContext<S extends Record<string, any> = {}> {
     private _config: ZarfConfig<S> = {}
     private _relativeConfig: Record<string, ZarfConfig> = {}
     private _error: any
-    private _code: number | undefined;
+    private _code: HTTPStatusCode | undefined;
     private _middlewares: Array<MiddlewareFunction<S>> = []
 
     private readonly _request: Request | null
@@ -32,32 +32,43 @@ export class AppContext<S extends Record<string, any> = {}> {
     readonly meta: ContextMeta = {
         startTime: 0
     }
-    private _isImmediate: boolean = false
 
+    private _isImmediate: boolean = false
     public body: ParsedBody | null = null
 
     constructor(req: Request, config: ZarfConfig<S>) {
         this.meta.startTime = Date.now()
+
+        // Config
         this._config = config
+
+        // Core Entities - `Request` and `Response`
         this._request = req
         this._response = new Response('')
 
+        // Convenience Wrappers/Properties around the `Request`
+        // Request: Verb
         this.method = req.method.toLowerCase() as RouteMethod
+        // Request: URL
         this.url = new URL(req.url)
+        // Request: Host
         this.host = this.url.host
+        // Request: Path
         this.path = this._config?.strictRouting || this.url.pathname === '/' ?
             this.url.pathname :
             this.url.pathname.endsWith('/') ?
                 this.url.pathname.substring(0, this.url.pathname.length -1) :
                 this.url.pathname
-
+        // Request: Query Params
         this.query = new Proxy(new URLSearchParams(req.url), {
             get: (params, param) => params.get(param as string),
         })
+        // Request: Headers (Proxy)
         this.headers = new Proxy(this._request.headers, {
             get: (headers, header) => headers.get(header as string),
         })
 
+        // Response: Warm-up!
         if(this._config?.serverHeader) {
             this._response.headers.set('Server', this._config.serverHeader)
         }
@@ -97,12 +108,12 @@ export class AppContext<S extends Record<string, any> = {}> {
      * Get the current status code
      */
     get status() {
-        return this._code!
+        return this._code as HTTPStatusCode
     }
     /**
      * Set the current status code
      */
-    set status(code: number) {
+    set status(code: HTTPStatusCode) {
         this._code = code;
     }
 
@@ -278,7 +289,7 @@ export class AppContext<S extends Record<string, any> = {}> {
 
             return {
                 headers: _headers,
-                status,
+                status: this._code || status,
                 statusText
             }
         }

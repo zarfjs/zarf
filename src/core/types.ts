@@ -22,7 +22,8 @@ export type HeaderTypeContent = 'text' | 'json' | 'html'
 export type AppContext<S extends Record<string, string> = {}> = Omit<PrivateAppContext<S>,
     'after' |
     'afterMiddlewares' |
-    'useAppConfigOnPath'
+    'useAppConfigOnPath' |
+    'isImmediate'
 >
 // Context-internal interfaces/types
 export interface ContextMeta {
@@ -46,12 +47,20 @@ export interface ZarfOptions {
 }
 
 // `Route` types
+export interface RouteOptions {
+    [ROUTE_OPTION_DEFAULT]?: {},
+    meta: {
+        name: string,
+        alias: string
+    }
+}
+
 export interface Route<S extends Record<string, any> = {}> {
     id: string
     matcher: RegExp
     handler: RouteHandler<{}, S>
     vars: Array<string>
-    options: any,
+    options: RouteOptions,
     middlewares?: Array<MiddlewareFunction<S>>
 }
 export type RouteStack<S extends Record<string, any> = {}> = Record<RouteMethod, Array<Route<S>>>

@@ -1,5 +1,5 @@
 # Zarf
-Fast, Bun-powered, and Bun-only(for now) Web API framework with full Typescript support.
+Fast, Bun-powered, and Bun-only(for now) Web API framework with full TypeScript support.
 
 ## Quickstart
 Starting with `Zarf` is as simple as instantiating the `Zarf` class, attaching route handlers and finally starting the server
@@ -130,5 +130,5 @@ A lot of great stuff is actually planned for the project. The Alpha version is m
 
 ## Meta
 The project is developed on
-- OS - MacOS Monterey
+- OS - macOS Monterey
 - Bun - v0.1.13
